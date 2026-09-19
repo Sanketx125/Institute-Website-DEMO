@@ -1,0 +1,11 @@
+{
+  "name": "deekshaam-digital-campus",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "serve": "python3 serve.py",
+    "test": "node tests/smoke.mjs",
+    "check": "node --check src/app.js && node --check src/pages/views.js && node --check src/components/shell.js && node --check src/data/content.js && npm test"
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/((?!src/|robots.txt).*)", "destination": "/index.html" }
+  ]
+}

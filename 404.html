@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Deekshaam Business School</title>
+  <script>
+    // GitHub Pages Single Page App 404 redirect script
+    (function() {
+      const path = window.location.pathname;
+      const segments = path.split('/').filter(Boolean);
+      const knownRoutes = new Set([
+        'programs', 'certifications', 'compare', 'admissions', 'placements',
+        'campus', 'about', 'resources', 'parents', 'visit', 'contact', 'apply', 'track'
+      ]);
+      let repo = '';
+      let remaining = segments;
+      if (segments.length > 0 && !knownRoutes.has(segments[0])) {
+        repo = '/' + segments[0];
+        remaining = segments.slice(1);
+      }
+      const routePath = '/' + remaining.join('/');
+      const search = window.location.search;
+      const hash = window.location.hash;
+      const target = (repo || '') + '/?route=' + encodeURIComponent(routePath) + (search ? '&' + search.slice(1) : '') + hash;
+      window.location.replace(target);
+    })();
+  </script>
+</head>
+<body>
+  <p>Redirecting to application...</p>
+</body>
+</html>

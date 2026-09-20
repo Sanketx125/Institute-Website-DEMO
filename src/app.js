@@ -1,5 +1,5 @@
 import { shell } from './components/shell.js';
-import { route, installLinkInterceptor, navigate } from './lib/router.js';
+import { route, installLinkInterceptor, navigate, updateLinks } from './lib/router.js';
 import { admissionsGateway } from './services/admissionsGateway.js';
 import { leadGateway } from './services/leadGateway.js';
 import { programs, certifications, institution } from './data/content.js';
@@ -30,6 +30,7 @@ function render(){
   else if(r.path==='/track') view=trackPage();
   else view=notFound();
   app.innerHTML = shell(view);
+  updateLinks();
   bindCommon();
   bindPage(r.path);
   document.title = titleFor(r.path);
@@ -81,6 +82,7 @@ function renderSearch(q){
     {title:'Contact admissions',text:'phone email address directions callback',href:'/contact',type:'Contact'}
   ].filter(x=>(x.title+' '+x.text).toLowerCase().includes(term)).slice(0,8);
   root.innerHTML = rows.length ? rows.map(x=>`<a href="${x.href}" data-link><span>${x.type}</span><strong>${x.title}</strong><small>${x.text.slice(0,105)}${x.text.length>105?'...':''}</small></a>`).join('') : '<div class="search-empty">No exact match. Try a program name, admissions, hostel or career.</div>';
+  updateLinks();
   root.querySelectorAll('a[data-link]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();navigate(a.getAttribute('href'));}));
 }
 

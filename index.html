@@ -11,16 +11,38 @@
   <meta property="og:type" content="website" />
   <meta property="og:image" content="https://deekshaedu.in/wp-content/uploads/2025/03/Deekshaam-Buisness-School-Img-1.png" />
   <title>Deekshaam Business School</title>
+  <script>
+    // Restore route redirected from 404.html on GitHub Pages
+    (function() {
+      const params = new URLSearchParams(window.location.search);
+      const redirectRoute = params.get('route');
+      if (redirectRoute) {
+        params.delete('route');
+        const cleanSearch = params.toString() ? '?' + params.toString() : '';
+        const segments = window.location.pathname.split('/').filter(Boolean);
+        const knownRoutes = new Set([
+          'programs', 'certifications', 'compare', 'admissions', 'placements',
+          'campus', 'about', 'resources', 'parents', 'visit', 'contact', 'apply', 'track'
+        ]);
+        let base = '';
+        if (segments.length > 0 && !knownRoutes.has(segments[0])) {
+          base = '/' + segments[0];
+        }
+        const target = (base || '') + (redirectRoute.startsWith('/') ? redirectRoute : '/' + redirectRoute) + cleanSearch + window.location.hash;
+        window.history.replaceState(null, '', target);
+      }
+    })();
+  </script>
   <link rel="preconnect" href="https://deekshaedu.in" />
   <link rel="preconnect" href="https://media.collegedekho.com" />
   <link rel="icon" href="https://media.collegedekho.com/media/img/institute/logo/download_4_K3JEM2R.png?width=64" />
-  <link rel="stylesheet" href="/src/styles/app.css" />
+  <link rel="stylesheet" href="./src/styles/app.css" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
   <div id="app"></div>
   <noscript>This website requires JavaScript for interactive navigation and application features.</noscript>
-  <script src="/runtime-config.js"></script>
-  <script type="module" src="/src/app.js"></script>
+  <script src="./runtime-config.js"></script>
+  <script type="module" src="./src/app.js"></script>
 </body>
 </html>

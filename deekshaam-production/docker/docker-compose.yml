@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: deekshaam_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: deekshaam_production
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    container_name: deekshaam_api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/deekshaam_production?schema=public
+      JWT_SECRET: super-secure-jwt-production-secret-token-key-2026
+      CLIENT_ORIGIN: http://localhost
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+    volumes:
+      - public_media:/app/storage/public-media
+      - private_docs:/app/storage/private-documents
+
+  web:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.web
+    container_name: deekshaam_web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  public_media:
+  private_docs:

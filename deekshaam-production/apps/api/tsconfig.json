@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@deekshaam/types": ["../../packages/types/src"],
+      "@deekshaam/validation": ["../../packages/validation/src"],
+      "@deekshaam/ui": ["../../packages/ui/src"]
+    }
+  },
+  "include": ["src/**/*"]
+}

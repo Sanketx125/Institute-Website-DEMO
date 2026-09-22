@@ -1,0 +1,2 @@
+# Storage reserved for private applicant documents (10th/12th marksheets, IDs).
+# MUST NEVER BE SERVED PUBLICLY. All access requires authenticated API route.

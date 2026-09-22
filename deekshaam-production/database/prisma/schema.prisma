@@ -1,0 +1,479 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// --------------------------------------------------
+// USERS & RBAC
+// --------------------------------------------------
+model Role {
+  id          String           @id @default(cuid())
+  name        String           @unique // SUPER_ADMIN, CONTENT_ADMIN, ADMISSION_STAFF, ENQUIRY_STAFF
+  description String?
+  permissions RolePermission[]
+  users       User[]
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  code        String           @unique // e.g. cms:write, admissions:manage, payments:view
+  description String?
+  roles       RolePermission[]
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model User {
+  id            String      @id @default(cuid())
+  email         String      @unique
+  passwordHash  String
+  name          String
+  roleId        String
+  role          Role        @relation(fields: [roleId], references: [id])
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  auditLogs     AuditLog[]
+  uploadedMedia Media[]
+}
+
+// --------------------------------------------------
+// SITE SETTINGS & MEDIA
+// --------------------------------------------------
+model SiteSettings {
+  id              String   @id @default(cuid())
+  instituteName   String
+  shortName       String
+  managedBy       String
+  founded         String
+  phone           String
+  admissionEmail  String
+  contactEmail    String
+  address         String
+  coordinates     String
+  heroImage       String
+  campusImage     String
+  logoImage       String
+  affiliations    String[]
+  socialLinksJson String?
+  seoDefaultsJson String?
+  updatedAt       DateTime @updatedAt
+}
+
+model Media {
+  id           String   @id @default(cuid())
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  url          String
+  altText      String?
+  category     String?
+  uploadedById String?
+  uploadedBy   User?    @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+}
+
+// --------------------------------------------------
+// AUDIT LOGS
+// --------------------------------------------------
+model AuditLog {
+  id          String   @id @default(cuid())
+  action      String   // CREATE, UPDATE, DELETE, LOGIN, STATUS_CHANGE
+  entity      String
+  entityId    String?
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userEmail   String?
+  ipAddress   String?
+  detailsJson String?
+  timestamp   DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([timestamp])
+}
+
+// --------------------------------------------------
+// CMS: PAGES, SECTIONS, MENUS
+// --------------------------------------------------
+model Page {
+  id              String        @id @default(cuid())
+  slug            String        @unique
+  title           String
+  metaDescription String?
+  status          String        @default("PUBLISHED") // DRAFT, PUBLISHED, ARCHIVED
+  sections        PageSection[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model PageSection {
+  id           String   @id @default(cuid())
+  pageId       String
+  page         Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  type         String   // hero, features, stats, split, cta, faq, cards, text
+  title        String?
+  subtitle     String?
+  content      String?
+  metadataJson String?
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([pageId, order])
+}
+
+model Menu {
+  id    String     @id @default(cuid())
+  name  String     @unique // primary, footer, mobile
+  items MenuItem[]
+}
+
+model MenuItem {
+  id       String     @id @default(cuid())
+  menuId   String
+  menu     Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  label    String
+  url      String
+  order    Int        @default(0)
+  parentId String?
+  parent   MenuItem?  @relation("MenuHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children MenuItem[] @relation("MenuHierarchy")
+  target   String?
+
+  @@index([menuId, order])
+}
+
+// --------------------------------------------------
+// CMS: ACADEMICS, PROGRAMS, DEPARTMENTS
+// --------------------------------------------------
+model Department {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String
+  headName    String?
+  programs    Program[]
+  faculty     Faculty[]
+  createdAt   DateTime  @default(now())
+}
+
+model Program {
+  id                  String                  @id @default(cuid())
+  slug                String                  @unique
+  code                String
+  title               String
+  kicker              String
+  duration            String
+  mode                String
+  eligibility         String
+  image               String
+  summary             String
+  departmentId        String?
+  department          Department?             @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  specializations     ProgramSpecialization[]
+  careers             ProgramCareer[]
+  highlights          ProgramHighlight[]
+  curriculumSemesters ProgramCurriculum[]
+  status              String                  @default("PUBLISHED")
+  applications        Application[]
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
+}
+
+model ProgramSpecialization {
+  id        String  @id @default(cuid())
+  programId String
+  program   Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  name      String
+
+  @@index([programId])
+}
+
+model ProgramCareer {
+  id        String  @id @default(cuid())
+  programId String
+  program   Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  title     String
+
+  @@index([programId])
+}
+
+model ProgramHighlight {
+  id        String  @id @default(cuid())
+  programId String
+  program   Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  text      String
+
+  @@index([programId])
+}
+
+model ProgramCurriculum {
+  id             String  @id @default(cuid())
+  programId      String
+  program        Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  semesterNumber Int
+  subject        String
+
+  @@index([programId, semesterNumber])
+}
+
+model Certification {
+  id       String @id @default(cuid())
+  group    String
+  duration String
+  title    String
+  text     String
+  status   String @default("PUBLISHED")
+}
+
+model Faculty {
+  id           String      @id @default(cuid())
+  name         String
+  role         String
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  image        String?
+  note         String?
+  isLeadership Boolean     @default(false)
+  order        Int         @default(0)
+}
+
+// --------------------------------------------------
+// CMS: NEWS, EVENTS, NOTICES, GALLERY, DOCUMENTS
+// --------------------------------------------------
+model News {
+  id         String   @id @default(cuid())
+  slug       String   @unique
+  title      String
+  category   String
+  date       String
+  coverImage String?
+  summary    String?
+  content    String
+  href       String?
+  status     String   @default("PUBLISHED")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([status, createdAt])
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  date        String
+  time        String?
+  location    String?
+  summary     String
+  description String?
+  coverImage  String?
+  status      String   @default("PUBLISHED")
+  createdAt   DateTime @default(now())
+
+  @@index([status])
+}
+
+model Notice {
+  id        String   @id @default(cuid())
+  title     String
+  date      String
+  priority  String   @default("NORMAL") // NORMAL, HIGH, URGENT
+  fileUrl   String?
+  status    String   @default("PUBLISHED")
+  createdAt DateTime @default(now())
+
+  @@index([status])
+}
+
+model Gallery {
+  id        String   @id @default(cuid())
+  title     String
+  category  String
+  imageUrl  String
+  caption   String?
+  order     Int      @default(0)
+  status    String   @default("PUBLISHED")
+  createdAt DateTime @default(now())
+
+  @@index([status, category])
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  title     String
+  category  String
+  fileUrl   String
+  fileSize  String?
+  status    String   @default("PUBLISHED")
+  createdAt DateTime @default(now())
+
+  @@index([status])
+}
+
+// --------------------------------------------------
+// ADMISSIONS
+// --------------------------------------------------
+model Application {
+  id             String                     @id // e.g. DBS-2026-104928
+  fullName       String
+  email          String
+  phone          String
+  dob            String
+  gender         String?
+  state          String
+  city           String
+  programId      String?
+  program        Program?                   @relation(fields: [programId], references: [id], onDelete: SetNull)
+  programSlug    String
+  specialization String?
+  board10        String
+  year10         String
+  board12        String
+  year12         String
+  stream         String
+  percentage     String
+  status         String                     @default("SUBMITTED") // SUBMITTED, UNDER_REVIEW, DOCUMENT_VERIFICATION, ACCEPTED, REJECTED
+  stage          Int                        @default(1)
+  documents      ApplicationDocument[]
+  statusHistory  ApplicationStatusHistory[]
+  payments       Payment[]
+  submittedAt    DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+
+  @@index([status])
+  @@index([email])
+}
+
+model ApplicationDocument {
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  documentType  String      // PHOTO, MARKSHEET_10, MARKSHEET_12, ID_PROOF, OTHER
+  fileName      String
+  filePath      String
+  fileSize      Int
+  mimeType      String
+  uploadedAt    DateTime    @default(now())
+
+  @@index([applicationId])
+}
+
+model ApplicationStatusHistory {
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  oldStatus     String?
+  newStatus     String
+  comment       String?
+  changedBy     String?
+  timestamp     DateTime    @default(now())
+
+  @@index([applicationId])
+}
+
+// --------------------------------------------------
+// ENQUIRIES & LEADS
+// --------------------------------------------------
+model Lead {
+  id            String        @id @default(cuid())
+  type          String        // GENERAL_ENQUIRY, CALLBACK, CAMPUS_VISIT
+  name          String
+  email         String?
+  phone         String
+  program       String?
+  preferredDate String?
+  preferredTime String?
+  message       String?
+  sourcePage    String?
+  status        String        @default("NEW") // NEW, CONTACTED, FOLLOW_UP, CLOSED
+  assignedTo    String?
+  notes         String?
+  history       LeadHistory[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model LeadHistory {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  oldStatus String?
+  newStatus String
+  notes     String?
+  changedBy String?
+  createdAt DateTime @default(now())
+
+  @@index([leadId])
+}
+
+// --------------------------------------------------
+// PAYMENTS
+// --------------------------------------------------
+model Payment {
+  id            String       @id @default(cuid())
+  orderId       String       @unique
+  paymentId     String?      @unique
+  signature     String?
+  amount        Int          // in paise
+  currency      String       @default("INR")
+  purpose       String       // APPLICATION_FEE, ADMISSION_FEE, TUITION_FEE
+  applicationId String?
+  application   Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  status        String       @default("CREATED") // CREATED, PENDING, SUCCESS, FAILED, CANCELLED
+  customerName  String
+  customerEmail String
+  customerPhone String
+  notes         String?
+  verifiedAt    DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([orderId])
+  @@index([status])
+}
+
+// --------------------------------------------------
+// SEARCH & ANALYTICS
+// --------------------------------------------------
+model SearchIndex {
+  id         String   @id @default(cuid())
+  entityType String   // Program, Certification, Page, News, Event, Notice
+  entityId   String
+  title      String
+  content    String
+  url        String
+  category   String?
+  tags       String?
+  updatedAt  DateTime @updatedAt
+
+  @@index([entityType])
+}
+
+model AnalyticsEvent {
+  id           String   @id @default(cuid())
+  eventType    String   // page_view, cta_click, form_submission, search_query, ai_interaction
+  pagePath     String
+  referrer     String?
+  userAgent    String?
+  metadataJson String?
+  timestamp    DateTime @default(now())
+
+  @@index([eventType, timestamp])
+}

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
+import { createUserSchema } from '@deekshaam/validation';
 import { memoryDb } from '../database/client';
 import { recordAuditLog } from '../middleware/logger';
 import { AuthenticatedRequest } from '../middleware/auth';
@@ -11,11 +12,19 @@ export function listUsers(req: Request, res: Response) {
 }
 
 export async function createUser(req: AuthenticatedRequest, res: Response) {
-  const { email, password, name, role } = req.body;
-
-  if (!email || !password || !name || !role) {
-    return res.status(400).json({ success: false, error: { code: 'BAD_REQUEST', message: 'Missing required fields' } });
+  const parsed = createUserSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: parsed.error.errors.map((e) => e.message).join('; '),
+        details: parsed.error.flatten(),
+      },
+    });
   }
+
+  const { email, password, name, role } = parsed.data;
 
   const existing = memoryDb.users.find((u) => u.email.toLowerCase() === email.toLowerCase());
   if (existing) {

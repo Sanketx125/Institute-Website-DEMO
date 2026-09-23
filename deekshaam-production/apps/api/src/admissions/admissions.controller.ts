@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import crypto from 'crypto';
 import path from 'path';
 import fs from 'fs';
 import { applicationSchema, applicationStatusUpdateSchema } from '@deekshaam/validation';
@@ -6,6 +7,44 @@ import { memoryDb } from '../database/client';
 import { recordAuditLog } from '../middleware/logger';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { config } from '../config';
+
+const APPLICANT_TOKEN_HEADER = 'x-applicant-token';
+const APPLICANT_EMAIL_HEADER = 'x-applicant-email';
+
+function hasApplicantProof(req: Request): boolean {
+  return Boolean(req.headers[APPLICANT_TOKEN_HEADER] || req.headers[APPLICANT_EMAIL_HEADER]);
+}
+
+function verifyApplicantProof(req: Request, application: any): boolean {
+  const token = req.headers[APPLICANT_TOKEN_HEADER];
+  if (typeof token === 'string' && application.accessToken) {
+    const expected = Buffer.from(application.accessToken);
+    const provided = Buffer.from(token);
+    if (expected.length === provided.length && crypto.timingSafeEqual(expected, provided)) return true;
+  }
+  const email = req.headers[APPLICANT_EMAIL_HEADER];
+  if (typeof email === 'string' && application.email) {
+    return email.trim().toLowerCase() === application.email.toLowerCase();
+  }
+  return false;
+}
+
+function verificationRequired() {
+  return {
+    success: false,
+    error: {
+      code: 'VERIFICATION_REQUIRED',
+      message: `Provide your application access token (${APPLICANT_TOKEN_HEADER}) or the email you applied with (${APPLICANT_EMAIL_HEADER})`,
+    },
+  };
+}
+
+function notFound() {
+  return {
+    success: false,
+    error: { code: 'NOT_FOUND', message: 'No application found with this reference ID' },
+  };
+}
 
 function generateApplicationId(): string {
   const year = new Date().getFullYear();
@@ -20,6 +59,7 @@ export function submitApplication(req: Request, res: Response) {
   const application = {
     id: applicationId,
     ...validated,
+    accessToken: crypto.randomBytes(24).toString('hex'),
     status: 'SUBMITTED',
     stage: 1, // 1: Submitted, 2: Document Verification, 3: Admissions Review, 4: Decision, 5: Enrollment
     documents: [],
@@ -57,6 +97,7 @@ export function submitApplication(req: Request, res: Response) {
       status: application.status,
       stage: application.stage,
       submittedAt: application.submittedAt,
+      accessToken: application.accessToken,
     },
   });
 }
@@ -65,11 +106,12 @@ export function trackApplication(req: Request, res: Response) {
   const { id } = req.params;
   const application = memoryDb.applications.find((a) => a.id.toUpperCase() === id.trim().toUpperCase());
 
-  if (!application) {
-    return res.status(404).json({
-      success: false,
-      error: { code: 'NOT_FOUND', message: 'No application found with this reference ID' },
-    });
+  if (!hasApplicantProof(req)) {
+    return res.status(401).json(verificationRequired());
+  }
+
+  if (!application || !verifyApplicantProof(req, application)) {
+    return res.status(404).json(notFound());
   }
 
   const stages = [
@@ -84,8 +126,6 @@ export function trackApplication(req: Request, res: Response) {
     success: true,
     data: {
       id: application.id,
-      fullName: application.fullName,
-      email: application.email,
       programSlug: application.programSlug,
       status: application.status,
       stage: application.stage,
@@ -99,8 +139,17 @@ export function uploadApplicantDocument(req: Request, res: Response) {
   const { id } = req.params;
   const application = memoryDb.applications.find((a) => a.id.toUpperCase() === id.trim().toUpperCase());
 
-  if (!application) {
-    return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Application not found' } });
+  const reject = (status: number, body: unknown) => {
+    if (req.file) fs.unlink(req.file.path, () => {});
+    return res.status(status).json(body);
+  };
+
+  if (!hasApplicantProof(req)) {
+    return reject(401, verificationRequired());
+  }
+
+  if (!application || !verifyApplicantProof(req, application)) {
+    return reject(404, notFound());
   }
 
   if (!req.file) {
@@ -162,7 +211,7 @@ export function listApplications(req: AuthenticatedRequest, res: Response) {
     );
   }
 
-  res.json({ success: true, data: list });
+  res.json({ success: true, data: list.map(({ accessToken: _accessToken, ...rest }) => rest) });
 }
 
 export function getApplicationDetail(req: AuthenticatedRequest, res: Response) {
@@ -171,7 +220,8 @@ export function getApplicationDetail(req: AuthenticatedRequest, res: Response) {
   if (!app) {
     return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Application not found' } });
   }
-  res.json({ success: true, data: app });
+  const { accessToken: _accessToken, ...safeApp } = app;
+  res.json({ success: true, data: safeApp });
 }
 
 export function updateApplicationStatus(req: AuthenticatedRequest, res: Response) {
@@ -210,7 +260,8 @@ export function updateApplicationStatus(req: AuthenticatedRequest, res: Response
     details: { oldStatus, newStatus: status, comment },
   });
 
-  res.json({ success: true, data: app });
+  const { accessToken: _accessToken, ...safeApp } = app;
+  res.json({ success: true, data: safeApp });
 }
 
 export function downloadPrivateDocument(req: AuthenticatedRequest, res: Response) {

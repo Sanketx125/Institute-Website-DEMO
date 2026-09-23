@@ -22,9 +22,13 @@ This guide provides end-to-end instructions for deploying the platform locally f
 
 2. Configure environment variables in `.env`:
    - `DATABASE_URL`: PostgreSQL connection string (e.g. `postgresql://user:password@localhost:5432/deekshaam_production?schema=public`)
-   - `JWT_SECRET`: A secure 32+ character random secret string
-   - `RAZORPAY_KEY_ID` & `RAZORPAY_KEY_SECRET`: Provided by the finance department
-   - `RAZORPAY_WEBHOOK_SECRET`: Configured in Razorpay Webhook dashboard
+   - `JWT_SECRET`: A secure 32+ character random secret string (required in production — generate with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`)
+   - `CLIENT_ORIGIN`: Exact origin of the web app, used as the CORS allow-list (required in production)
+   - `RAZORPAY_KEY_ID` & `RAZORPAY_KEY_SECRET`: Provided by the finance department (key secret required in production)
+   - `RAZORPAY_WEBHOOK_SECRET`: Configured in Razorpay Webhook dashboard (required in production)
+   - `ADMIN_PASSWORD` & `STAFF_PASSWORD`: Bootstrap passwords for the super admin and admissions staff accounts (required in production)
+
+   The API refuses to start in production if any of the secrets or bootstrap passwords above are missing. In development, missing secrets are generated randomly per boot and missing account passwords are printed once to the console.
 
 ---
 
@@ -50,9 +54,10 @@ npm run dev:web
 Open `http://localhost:3000` in your browser to view the public website.
 Open `http://localhost:3000/admin` to access the administration workspace.
 
-### Default Super Admin Credentials:
-- **Email**: `admin@deekshaam.edu`
-- **Password**: `Admin@123456`
+### Staff Credentials:
+- **Super Admin Email**: `admin@deekshaam.edu`
+- **Admissions Staff Email**: `admissions@deekshaam.edu`
+- **Passwords**: provided via `ADMIN_PASSWORD` / `STAFF_PASSWORD` (no defaults are shipped)
 
 ---
 

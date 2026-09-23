@@ -1,5 +1,6 @@
 import { prisma, checkDatabaseConnection } from './database/client';
 import bcrypt from 'bcryptjs';
+import { requiredPassword } from './config';
 import {
   defaultRoles,
   defaultPermissions,
@@ -43,7 +44,7 @@ async function runSeed() {
 
   const superAdminRole = await prisma.role.findUnique({ where: { name: 'SUPER_ADMIN' } });
   if (superAdminRole) {
-    const passwordHash = await bcrypt.hash('Admin@123456', 10);
+    const passwordHash = await bcrypt.hash(requiredPassword('ADMIN_PASSWORD', 'super admin'), 10);
     await prisma.user.upsert({
       where: { email: 'admin@deekshaam.edu' },
       update: {},

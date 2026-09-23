@@ -1,5 +1,8 @@
 import React, { useEffect } from 'react';
 
+const SITE_NAME = 'Deekshaam Business School';
+const DEFAULT_OG_IMAGE = '/logo.svg';
+
 interface SEOHeadProps {
   title: string;
   description?: string;
@@ -14,25 +17,45 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
   structuredData,
 }) => {
   useEffect(() => {
-    document.title = `${title} | Deekshaam Business School`;
+    const fullTitle = `${title} | ${SITE_NAME}`;
+    const canonicalUrl = `${window.location.origin}${canonicalPath}`;
+    const ogImageUrl = `${window.location.origin}${DEFAULT_OG_IMAGE}`;
+    document.title = fullTitle;
 
-    // Meta description
-    let metaDesc = document.querySelector('meta[name="description"]');
-    if (!metaDesc) {
-      metaDesc = document.createElement('meta');
-      metaDesc.setAttribute('name', 'description');
-      document.head.appendChild(metaDesc);
-    }
-    metaDesc.setAttribute('content', description);
+    const setMeta = (attr: 'name' | 'property', key: string, content: string) => {
+      let el = document.head.querySelector<HTMLMetaElement>(`meta[${attr}="${key}"]`);
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute(attr, key);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', content);
+    };
 
-    // Canonical URL
+    setMeta('name', 'description', description);
+
+    // Open Graph
+    setMeta('property', 'og:site_name', SITE_NAME);
+    setMeta('property', 'og:type', 'website');
+    setMeta('property', 'og:title', fullTitle);
+    setMeta('property', 'og:description', description);
+    setMeta('property', 'og:url', canonicalUrl);
+    setMeta('property', 'og:image', ogImageUrl);
+
+    // Twitter cards
+    setMeta('name', 'twitter:card', 'summary_large_image');
+    setMeta('name', 'twitter:title', fullTitle);
+    setMeta('name', 'twitter:description', description);
+    setMeta('name', 'twitter:image', ogImageUrl);
+
+    // Canonical URL (uses href, not content)
     let canonical = document.querySelector('link[rel="canonical"]');
     if (!canonical) {
       canonical = document.createElement('link');
       canonical.setAttribute('rel', 'canonical');
       document.head.appendChild(canonical);
     }
-    canonical.setAttribute('content', `${window.location.origin}${canonicalPath}`);
+    canonical.setAttribute('href', canonicalUrl);
 
     // JSON-LD Structured Data
     const defaultSchema = {
@@ -41,7 +64,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
       name: 'Deekshaam Business School',
       alternateName: 'DBS',
       url: window.location.origin,
-      logo: 'https://media.collegedekho.com/media/img/institute/logo/download_4_K3JEM2R.png?width=96',
+      logo: ogImageUrl,
       address: {
         '@type': 'PostalAddress',
         streetAddress: 'Venkatpura, Kundana, Devanhalli Taluk',

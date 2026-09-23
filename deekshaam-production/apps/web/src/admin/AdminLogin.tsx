@@ -10,7 +10,7 @@ interface AdminLoginProps {
 
 export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onNavigate }) => {
   const [email, setEmail] = useState('admin@deekshaam.edu');
-  const [password, setPassword] = useState('Admin@123456');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -171,30 +171,8 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onNaviga
               color: '#888',
             }}
           >
-            <div>Default Super Admin: <strong>admin@deekshaam.edu</strong></div>
-            <div style={{ marginTop: '4px' }}>Default Password: <strong>Admin@123456</strong></div>
-            <div style={{ marginTop: '10px' }}>
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('admin@deekshaam.edu');
-                  setPassword('Admin@123456');
-                  setError(null);
-                }}
-                style={{
-                  background: '#fff2ea',
-                  color: 'var(--orange)',
-                  border: '1px solid #ffd4bf',
-                  borderRadius: '6px',
-                  padding: '6px 12px',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                ⚡ Click to Auto-Fill Credentials
-              </button>
-            </div>
+            <div>Credentials are provisioned by the platform administrator</div>
+            <div style={{ marginTop: '4px' }}>(dev: see the API startup log or set ADMIN_PASSWORD / STAFF_PASSWORD)</div>
             <div style={{ marginTop: '16px' }}>
               <button
                 onClick={() => onNavigate('/')}

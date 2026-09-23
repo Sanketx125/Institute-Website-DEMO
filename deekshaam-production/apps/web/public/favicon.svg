@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
+  <!-- Shield Background -->
+  <path d="M32 2 L58 13 V35 C58 50 46 60 32 64 C18 60 6 50 6 35 V13 Z" fill="#0f2440" />
+  <path d="M32 5 L55 15 V35 C55 48 44 58 32 61 C20 58 9 48 9 35 V15 Z" fill="#1c3a5e" />
+  
+  <!-- Book Motif -->
+  <path d="M18 40 Q32 34 32 42 Q32 34 46 40 C43 46 35 45 32 48 C29 45 21 46 18 40 Z" fill="#f9fafb" />
+  <!-- Flame Motif -->
+  <path d="M32 16 C35 22 38 25 35 32 C33 28 31 28 32 16 Z" fill="#ea580c" />
+  <polygon points="32,7 34,12 39,12 35,15 37,20 32,17 27,20 29,15 25,12 30,12" fill="#ffedd5" />
+</svg>

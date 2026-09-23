@@ -44,8 +44,8 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenS
           <a href="/" className="brand" onClick={(e) => handleNav('/', e)}>
             <div className="brand-mark">
               <img
-                src="https://media.collegedekho.com/media/img/institute/logo/download_4_K3JEM2R.png?width=96"
-                alt="DBS Logo"
+                src="/favicon.svg"
+                alt="Deekshaam Logo"
                 className="brand-official"
               />
             </div>

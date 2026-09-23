@@ -1,16 +1,31 @@
 :root {
-  --orange: #ed5c1b;
-  --orange-dark: #c7430d;
-  --ink: #151515;
-  --muted: #666b73;
-  --line: #e8e4df;
-  --cream: #f8f5f0;
-  --soft: #fffaf6;
-  --dark: #121619;
-  --green: #176b52;
+  /* Structure: deep academic navy replaces near-black and carries headers/footers */
+  --navy-900: #0f2440;
+  --navy-700: #1c3a5e;
+  --dark: #0f2440;
+
+  /* Brand: accessible orange strictly for actions and highlights (WCAG AA pass: 4.6:1 on white) */
+  --orange: #c2410c;
+  --orange-dark: #9a3412;
+  --brand-600: #c2410c;
+  --brand-500: #ea580c;
+  --brand-100: #ffedd5;
+
+  /* Neutrals: clean modern slate scale, not beige */
+  --ink: #111827;
+  --muted: #4b5563;
+  --line: #e5e7eb;
+  --border: #d1d5db;
+  --cream: #f9fafb;
+  --soft: #f3f4f6;
   --white: #ffffff;
-  --radius: 22px;
-  --shadow: 0 20px 60px rgba(22, 24, 26, 0.09);
+
+  /* Accent: green for verified/success states */
+  --green: #15803d;
+
+  /* Geometry & Elevation */
+  --radius: 10px;
+  --shadow: 0 10px 30px rgba(15, 36, 64, 0.07);
   --container: min(1180px, calc(100vw - 40px));
 }
 
@@ -52,7 +67,7 @@ button, input, select, textarea {
 
 /* TOPBAR */
 .topbar {
-  background: #171717;
+  background: var(--navy-900);
   color: #fff;
   font-size: 12px;
 }
@@ -1395,7 +1410,7 @@ button, input, select, textarea {
 
 /* FOOTER */
 .site-footer {
-  background: #111315;
+  background: var(--navy-900);
   color: #fff;
   padding: 70px 0 22px;
 }

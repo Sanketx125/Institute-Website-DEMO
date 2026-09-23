@@ -9,6 +9,16 @@ fs.realpathSync = function(p, opts) {
 };
 fs.realpathSync.native = fs.realpathSync;
 
+// Deterministic test credentials/secrets (must be set before the app module loads)
+process.env.NODE_ENV = 'test';
+process.env.CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:3000';
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'integration-test-jwt-secret-not-for-production-use';
+process.env.RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || 'integration-test-razorpay-key-secret';
+process.env.RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || 'integration-test-razorpay-webhook-secret';
+process.env.ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Admin@123456';
+process.env.STAFF_PASSWORD = process.env.STAFF_PASSWORD || 'Staff@123456';
+
+const crypto = require('crypto');
 const { app } = require('../apps/api/dist/apps/api/src/app.js');
 
 const PORT = 5055;
@@ -17,9 +27,13 @@ const BASE_URL = `http://localhost:${PORT}`;
 
 async function request(path, options = {}) {
   const url = `${BASE_URL}${path}`;
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
   const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
     ...options,
+    headers: {
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+      ...(options.headers || {}),
+    },
   });
   const text = await res.text();
   try {
@@ -27,6 +41,13 @@ async function request(path, options = {}) {
   } catch {
     return { status: res.status, data: null, text };
   }
+}
+
+function razorpaySignature(orderId, paymentId) {
+  return crypto
+    .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+    .update(`${orderId}|${paymentId}`)
+    .digest('hex');
 }
 
 async function runTestSuite() {
@@ -117,10 +138,52 @@ async function runTestSuite() {
     });
     assert(applyRes.status === 201 && applyRes.data.data.id.startsWith('DBS-'), 'Online application submitted, issued reference ID');
     const generatedAppId = applyRes.data.data.id;
+    const applicantToken = applyRes.data.data.accessToken;
+    assert(typeof applicantToken === 'string' && applicantToken.length >= 32, 'Applicant access token issued once on submission');
 
-    // Track Application
-    const trackRes = await request(`/api/admissions/track/${generatedAppId}`);
-    assert(trackRes.status === 200 && trackRes.data.data.fullName === 'Rahul Sharma', 'Application tracking verified with 5 stages');
+    // Document upload ownership enforcement
+    const makeUpload = (headers) => {
+      const fd = new FormData();
+      fd.append('document', new Blob(['%PDF-1.4 test document'], { type: 'application/pdf' }), 'marks.pdf');
+      fd.append('documentType', 'MARKSHEET_10');
+      return request(`/api/admissions/upload/${generatedAppId}`, { method: 'POST', body: fd, headers });
+    };
+
+    const uploadNoProof = await makeUpload({});
+    assert(uploadNoProof.status === 401, 'Document upload without proof of ownership is rejected');
+
+    const uploadBadToken = await makeUpload({ 'x-applicant-token': 'forged-token-value' });
+    assert(uploadBadToken.status === 404, 'Document upload with a forged access token is rejected');
+
+    const uploadOk = await makeUpload({ 'x-applicant-token': applicantToken });
+    assert(uploadOk.status === 201 && uploadOk.data.success, 'Authenticated applicant can upload verification documents');
+
+    // Application tracking requires proof and never exposes PII
+    const trackNoProof = await request(`/api/admissions/track/${generatedAppId}`);
+    assert(trackNoProof.status === 401, 'Tracking without proof of ownership is rejected');
+
+    const trackBadEmail = await request(`/api/admissions/track/${generatedAppId}`, {
+      headers: { 'x-applicant-email': 'attacker@evil.com' },
+    });
+    assert(trackBadEmail.status === 404, 'Tracking with a non-matching email is rejected');
+
+    const trackRes = await request(`/api/admissions/track/${generatedAppId}`, {
+      headers: { 'x-applicant-token': applicantToken },
+    });
+    const tracked = trackRes.data && trackRes.data.data;
+    assert(
+      trackRes.status === 200 && tracked.stages.length === 5 && tracked.id === generatedAppId,
+      'Application tracking verified with 5 stages'
+    );
+    assert(
+      tracked && !('fullName' in tracked) && !('email' in tracked) && !('phone' in tracked) && !('accessToken' in tracked),
+      'Tracking response contains no PII or access tokens'
+    );
+
+    const trackByEmail = await request(`/api/admissions/track/${generatedAppId}`, {
+      headers: { 'x-applicant-email': 'rahul.sharma@gmail.com' },
+    });
+    assert(trackByEmail.status === 200 && trackByEmail.data.data.id === generatedAppId, 'Tracking with the registered email is allowed');
 
     // 5. Payment Workflow (Razorpay Order & Verification)
     const orderRes = await request('/api/payments/create-order', {
@@ -138,7 +201,7 @@ async function runTestSuite() {
     assert(orderRes.status === 201 && orderRes.data.data.orderId.startsWith('order_'), 'Razorpay order created with application linkage');
     const orderId = orderRes.data.data.orderId;
 
-    const verifyRes = await request('/api/payments/verify', {
+    const forgedRes = await request('/api/payments/verify', {
       method: 'POST',
       body: JSON.stringify({
         orderId,
@@ -146,7 +209,42 @@ async function runTestSuite() {
         signature: 'mock_signature_test',
       }),
     });
+    assert(forgedRes.status === 400, 'Forged payment signature is rejected in every environment');
+
+    const verifyRes = await request('/api/payments/verify', {
+      method: 'POST',
+      body: JSON.stringify({
+        orderId,
+        paymentId: 'pay_test_capture_1001',
+        signature: razorpaySignature(orderId, 'pay_test_capture_1001'),
+      }),
+    });
     assert(verifyRes.status === 200 && verifyRes.data.data.status === 'SUCCESS', 'Payment cryptographic verification succeeded');
+
+    // Webhook signature enforcement (raw-body HMAC)
+    const webhookBody = JSON.stringify({ event: 'payment.captured', payload: { payment: { entity: { id: 'pay_wh_1', order_id: orderId } } } });
+
+    const webhookUnsigned = await request('/api/payments/webhook', { method: 'POST', body: webhookBody });
+    assert(webhookUnsigned.status === 400, 'Webhook without signature header is rejected');
+
+    const webhookForged = await request('/api/payments/webhook', {
+      method: 'POST',
+      body: webhookBody,
+      headers: { 'x-razorpay-signature': 'deadbeef' },
+    });
+    assert(webhookForged.status === 400, 'Webhook with invalid signature is rejected');
+
+    const webhookValid = await request('/api/payments/webhook', {
+      method: 'POST',
+      body: webhookBody,
+      headers: {
+        'x-razorpay-signature': crypto
+          .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET)
+          .update(webhookBody)
+          .digest('hex'),
+      },
+    });
+    assert(webhookValid.status === 200 && webhookValid.data.received === true, 'Webhook with valid raw-body signature is accepted');
 
     // 6. Search Engine
     const searchProg = await request('/api/search?q=BCA');
@@ -172,7 +270,7 @@ async function runTestSuite() {
     // 9. Admin Authentication & RBAC
     const loginRes = await request('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email: 'admin@deekshaam.edu', password: 'Admin@123456' }),
+      body: JSON.stringify({ email: 'admin@deekshaam.edu', password: process.env.ADMIN_PASSWORD }),
     });
     assert(loginRes.status === 200 && loginRes.data.data.token, 'Super admin authenticated and received JWT');
     const adminToken = loginRes.data.data.token;
@@ -181,7 +279,10 @@ async function runTestSuite() {
     const adminApps = await request('/api/admissions/admin/applications', {
       headers: { Authorization: `Bearer ${adminToken}` },
     });
-    assert(adminApps.status === 200 && adminApps.data.data.length > 0, 'Staff admissions inbox protected route verified');
+    assert(
+      adminApps.status === 200 && adminApps.data.data.length > 0 && !('accessToken' in adminApps.data.data[0]),
+      'Staff admissions inbox protected route verified without leaking applicant tokens'
+    );
 
     const adminLeads = await request('/api/enquiries/admin', {
       headers: { Authorization: `Bearer ${adminToken}` },
@@ -202,6 +303,31 @@ async function runTestSuite() {
       headers: { Authorization: `Bearer ${adminToken}` },
     });
     assert(adminSummary.status === 200 && adminSummary.data.data.applications.total > 0, 'Analytics summary dashboard verified');
+
+    // 8. User Management Password Strength Enforcement
+    const weakUserRes = await request('/api/users', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${adminToken}` },
+      body: JSON.stringify({
+        email: 'newofficer@deekshaam.edu',
+        name: 'New Admissions Officer',
+        role: 'ADMISSION_STAFF',
+        password: 'weak',
+      }),
+    });
+    assert(weakUserRes.status === 400 && weakUserRes.data.error.code === 'VALIDATION_ERROR', 'User creation with weak password (<8 chars / missing complexity) is rejected');
+
+    const strongUserRes = await request('/api/users', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${adminToken}` },
+      body: JSON.stringify({
+        email: 'newofficer@deekshaam.edu',
+        name: 'New Admissions Officer',
+        role: 'ADMISSION_STAFF',
+        password: 'StrongPassword123!',
+      }),
+    });
+    assert(strongUserRes.status === 201 && strongUserRes.data.data.email === 'newofficer@deekshaam.edu', 'User creation with strong password succeeds and hashes credentials safely');
 
   } catch (err) {
     console.error('[TEST EXCEPTION]', err);

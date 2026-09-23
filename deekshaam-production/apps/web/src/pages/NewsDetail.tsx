@@ -43,12 +43,34 @@ export const NewsDetail: React.FC<NewsDetailProps> = ({ slug, onNavigate }) => {
     );
   }
 
+  const newsArticleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'NewsArticle',
+    headline: item.title,
+    description: item.summary || item.content.slice(0, 160),
+    datePublished: item.date,
+    author: {
+      '@type': 'Organization',
+      name: 'Deekshaam Business School',
+      url: window.location.origin,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Deekshaam Business School',
+      logo: {
+        '@type': 'ImageObject',
+        url: `${window.location.origin}/logo.svg`,
+      },
+    },
+  };
+
   return (
     <>
       <SEOHead
         title={item.title}
         description={item.summary || item.content.slice(0, 160)}
         canonicalPath={`/news/${item.slug}`}
+        structuredData={newsArticleSchema}
       />
 
       <section className="page-hero compact">

@@ -6,6 +6,13 @@ import { recordAuditLog } from '../middleware/logger';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { config } from '../config';
 
+function timingSafeEqual(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
 export function createPaymentOrder(req: Request, res: Response) {
   const validated = createPaymentOrderSchema.parse(req.body);
   const amountInPaise = Math.round(validated.amount * 100);
@@ -72,9 +79,7 @@ export function verifyPayment(req: Request, res: Response) {
     .update(`${orderId}|${paymentId}`)
     .digest('hex');
 
-  // Allow signature match or test bypass if in test/demo mode
-  const isTestMode = config.razorpay.keySecret === 'placeholder_secret_key_change_me' || config.env !== 'production';
-  const isSignatureValid = isTestMode || generatedSignature === signature;
+  const isSignatureValid = timingSafeEqual(generatedSignature, signature);
 
   if (!isSignatureValid) {
     payment.status = 'FAILED';
@@ -129,18 +134,27 @@ export function verifyPayment(req: Request, res: Response) {
 }
 
 export function handleWebhook(req: Request, res: Response) {
-  const webhookSignature = req.headers['x-razorpay-signature'] as string;
-  const rawBody = JSON.stringify(req.body);
+  const webhookSignature = req.headers['x-razorpay-signature'];
 
-  if (webhookSignature) {
-    const expectedSignature = crypto
-      .createHmac('sha256', config.razorpay.webhookSecret)
-      .update(rawBody)
-      .digest('hex');
+  if (!webhookSignature || typeof webhookSignature !== 'string') {
+    return res.status(400).json({
+      success: false,
+      error: { code: 'MISSING_SIGNATURE', message: 'x-razorpay-signature header is required' },
+    });
+  }
 
-    if (expectedSignature !== webhookSignature && config.isProduction) {
-      return res.status(400).json({ success: false, message: 'Invalid webhook signature' });
-    }
+  // Razorpay signs the raw request body, not the re-serialized JSON
+  const rawBody: Buffer | undefined = (req as any).rawBody;
+  const expectedSignature = crypto
+    .createHmac('sha256', config.razorpay.webhookSecret)
+    .update(rawBody ? rawBody.toString('utf8') : '')
+    .digest('hex');
+
+  if (!timingSafeEqual(expectedSignature, webhookSignature)) {
+    return res.status(400).json({
+      success: false,
+      error: { code: 'INVALID_SIGNATURE', message: 'Invalid webhook signature' },
+    });
   }
 
   const event = req.body.event;

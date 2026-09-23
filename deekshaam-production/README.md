@@ -109,9 +109,10 @@ npm run dev:web
 - Admin Workspace: `http://localhost:3000/admin`
 - Backend Health Check: `http://localhost:5000/api/health`
 
-### Default Staff Credentials:
-- **Email**: `admin@deekshaam.edu`
-- **Password**: `Admin@123456`
+### Staff Credentials:
+- **Super Admin Email**: `admin@deekshaam.edu`
+- **Admissions Staff Email**: `admissions@deekshaam.edu`
+- **Passwords**: no defaults are shipped. Set `ADMIN_PASSWORD` and `STAFF_PASSWORD` in `.env`. In development, if unset, a one-time random password is printed to the API console at startup. In production the API refuses to start without them.
 
 ---
 

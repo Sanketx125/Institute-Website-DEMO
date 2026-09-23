@@ -9,29 +9,44 @@ interface TrackProps {
 
 export const Track: React.FC<TrackProps> = ({ onNavigate }) => {
   const [appId, setAppId] = useState('');
+  const [email, setEmail] = useState('');
   const [appData, setAppData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const storedTokenFor = (id: string) => sessionStorage.getItem(`dbs_app_token_${id}`);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
     if (id) {
       setAppId(id);
-      fetchStatus(id);
+      if (storedTokenFor(id)) {
+        fetchStatus(id);
+      }
     }
   }, []);
 
   const fetchStatus = async (id: string) => {
-    if (!id.trim()) return;
+    const trimmedId = id.trim();
+    if (!trimmedId) return;
+
+    const token = storedTokenFor(trimmedId);
+    const trimmedEmail = email.trim();
+    if (!token && !trimmedEmail) {
+      setAppData(null);
+      setError('Enter the email address you used to apply so we can verify it is you.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      const res = await api.trackApplication(id.trim());
+      const res = await api.trackApplication(trimmedId, token ? { token } : { email: trimmedEmail });
       setAppData(res);
     } catch (err: any) {
-      setError(err.message || 'No application record found for this ID.');
+      setError(err.message || 'No application record found for this reference ID.');
       setAppData(null);
     } finally {
       setLoading(false);
@@ -55,7 +70,7 @@ export const Track: React.FC<TrackProps> = ({ onNavigate }) => {
         <div className="container">
           <span className="eyebrow">Applicant Portal</span>
           <h1>Track Your Application Progress</h1>
-          <p>Enter your institutional application reference number to view document verification and admission committee updates.</p>
+          <p>Enter your institutional application reference number and registered email to view document verification and admission committee updates.</p>
         </div>
       </section>
 
@@ -73,11 +88,21 @@ export const Track: React.FC<TrackProps> = ({ onNavigate }) => {
                 required
               />
             </label>
+            <label>
+              Registered Email Address *
+              <input
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required={!Boolean(storedTokenFor(appId.trim()))}
+              />
+            </label>
             <button type="submit" className="btn btn-primary full" style={{ marginTop: '16px' }} disabled={loading}>
               {loading ? 'Searching...' : 'Check Status'} <Icon name="arrow" size={16} />
             </button>
             <p className="form-note" style={{ marginTop: '14px' }}>
-              Your application reference ID was issued upon submitting your online form. Contact admissions if you need assistance retrieving it.
+              Your application reference ID was issued upon submitting your online form. We verify your email before showing any status details, so your information stays private. Contact admissions if you need assistance.
             </p>
           </form>
 
@@ -88,7 +113,7 @@ export const Track: React.FC<TrackProps> = ({ onNavigate }) => {
             {error && (
               <div style={{ textAlign: 'center', padding: '40px 0', color: '#9a3b20' }}>
                 <Icon name="alert" size={40} color="#9a3b20" />
-                <h3 style={{ margin: '14px 0 6px' }}>Application Record Not Found</h3>
+                <h3 style={{ margin: '14px 0 6px' }}>Unable to Show Application Status</h3>
                 <p style={{ color: '#666', fontSize: '13px' }}>{error}</p>
               </div>
             )}
@@ -98,7 +123,7 @@ export const Track: React.FC<TrackProps> = ({ onNavigate }) => {
                 <Icon name="document" size={44} color="#ccc" />
                 <h3 style={{ margin: '16px 0 6px', color: '#333' }}>Your Application Milestones Will Appear Here</h3>
                 <p style={{ fontSize: '13px', color: '#888' }}>
-                  Enter your reference ID on the left to track progress through document verification and committee decisions.
+                  Enter your reference ID and registered email on the left to track progress through document verification and committee decisions.
                 </p>
               </div>
             )}
@@ -106,10 +131,10 @@ export const Track: React.FC<TrackProps> = ({ onNavigate }) => {
             {appData && (
               <div className="status-card">
                 <span className="eyebrow">{appData.id}</span>
-                <h2>{appData.fullName}</h2>
+                <h2>{appData.programSlug?.toUpperCase()} Application</h2>
                 <p style={{ color: '#666', margin: '4px 0 20px' }}>
-                  {appData.email} &middot; Degree: <strong>{appData.programSlug?.toUpperCase()}</strong> &middot; Status:{' '}
-                  <span className="badge badge-success">{appData.status}</span>
+                  Status: <span className="badge badge-success">{appData.status}</span> &middot; Submitted:{' '}
+                  <strong>{appData.submittedAt?.slice(0, 10)}</strong>
                 </p>
 
                 <div className="status-timeline">

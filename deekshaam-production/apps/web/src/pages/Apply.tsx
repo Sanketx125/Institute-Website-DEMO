@@ -9,6 +9,20 @@ declare global {
   }
 }
 
+function loadRazorpaySdk(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (typeof window !== 'undefined' && window.Razorpay) {
+      return resolve(true);
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
+
 interface ApplyProps {
   onNavigate: (path: string) => void;
 }
@@ -116,25 +130,28 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
       const res = await api.submitApplication(formData);
       const appData = res;
       setSubmittedApp(appData);
+      if (appData.accessToken) {
+        sessionStorage.setItem(`dbs_app_token_${appData.id}`, appData.accessToken);
+      }
 
       // Upload documents if selected
       if (docFiles.marksheet10) {
         const fd = new FormData();
         fd.append('document', docFiles.marksheet10);
         fd.append('documentType', 'MARKSHEET_10');
-        await api.uploadApplicantDocument(appData.id, fd);
+        await api.uploadApplicantDocument(appData.id, fd, appData.accessToken);
       }
       if (docFiles.marksheet12) {
         const fd = new FormData();
         fd.append('document', docFiles.marksheet12);
         fd.append('documentType', 'MARKSHEET_12');
-        await api.uploadApplicantDocument(appData.id, fd);
+        await api.uploadApplicantDocument(appData.id, fd, appData.accessToken);
       }
       if (docFiles.photo) {
         const fd = new FormData();
         fd.append('document', docFiles.photo);
         fd.append('documentType', 'PHOTO');
-        await api.uploadApplicantDocument(appData.id, fd);
+        await api.uploadApplicantDocument(appData.id, fd, appData.accessToken);
       }
 
       localStorage.removeItem('dbs_application_draft');
@@ -150,6 +167,8 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
 
     try {
       setLoading(true);
+      await loadRazorpaySdk();
+
       const orderRes = await api.createPaymentOrder({
         amount: 500, // 500 INR
         purpose: 'APPLICATION_FEE',
@@ -187,7 +206,7 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
             contact: formData.phone,
           },
           theme: {
-            color: '#ed5c1b',
+            color: '#c2410c',
           },
         };
 

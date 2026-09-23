@@ -54,9 +54,20 @@ export const api = {
 
   // Admissions
   submitApplication: (data: any) => request('/admissions/apply', { method: 'POST', body: JSON.stringify(data) }),
-  trackApplication: (id: string) => request(`/admissions/track/${encodeURIComponent(id)}`),
-  uploadApplicantDocument: (appId: string, formData: FormData) =>
-    request(`/admissions/upload/${encodeURIComponent(appId)}`, { method: 'POST', body: formData }),
+  trackApplication: (id: string, proof?: { token?: string; email?: string }) =>
+    request(`/admissions/track/${encodeURIComponent(id)}`, {
+      headers: proof?.token
+        ? { 'x-applicant-token': proof.token }
+        : proof?.email
+          ? { 'x-applicant-email': proof.email }
+          : {},
+    }),
+  uploadApplicantDocument: (appId: string, formData: FormData, applicantToken?: string) =>
+    request(`/admissions/upload/${encodeURIComponent(appId)}`, {
+      method: 'POST',
+      body: formData,
+      headers: applicantToken ? { 'x-applicant-token': applicantToken } : {},
+    }),
 
   // Enquiries & Leads
   submitEnquiry: (data: any) => request('/enquiries', { method: 'POST', body: JSON.stringify(data) }),

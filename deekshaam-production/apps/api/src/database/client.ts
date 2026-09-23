@@ -13,6 +13,7 @@ import {
   defaultPermissions,
 } from './seed-data';
 import bcrypt from 'bcryptjs';
+import { requiredPassword } from '../config';
 
 // Prisma client instance
 export const prisma = new PrismaClient();
@@ -33,7 +34,7 @@ class MemoryDatabase {
     {
       id: 'usr-admin-1',
       email: 'admin@deekshaam.edu',
-      passwordHash: bcrypt.hashSync('Admin@123456', 10),
+      passwordHash: bcrypt.hashSync(requiredPassword('ADMIN_PASSWORD', 'super admin'), 10),
       name: 'System Administrator',
       role: 'SUPER_ADMIN',
       isActive: true,
@@ -42,7 +43,7 @@ class MemoryDatabase {
     {
       id: 'usr-admissions-1',
       email: 'admissions@deekshaam.edu',
-      passwordHash: bcrypt.hashSync('Staff@123456', 10),
+      passwordHash: bcrypt.hashSync(requiredPassword('STAFF_PASSWORD', 'admissions staff'), 10),
       name: 'Admissions Officer',
       role: 'ADMISSION_STAFF',
       isActive: true,

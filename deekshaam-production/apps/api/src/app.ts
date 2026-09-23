@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import path from 'path';
 
 import { config } from './config';
@@ -20,6 +21,9 @@ import aiRoutes from './ai/routes';
 
 export const app = express();
 
+// Behind nginx/Netlify the client IP arrives in X-Forwarded-For
+app.set('trust proxy', 1);
+
 // Security headers
 app.use(
   helmet({
@@ -27,18 +31,47 @@ app.use(
   })
 );
 
-// Cross-Origin Resource Sharing
+// Cross-Origin Resource Sharing: only the web app origin is allowed
 app.use(
   cors({
-    origin: '*',
+    origin: config.clientOrigin,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-razorpay-signature'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-razorpay-signature', 'x-applicant-token', 'x-applicant-email'],
   })
 );
 
-// Request parsing
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Request parsing (raw body kept for webhook signature verification)
+app.use(
+  express.json({
+    limit: '2mb',
+    verify: (req, _res, buf) => {
+      (req as any).rawBody = buf;
+    },
+  })
+);
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
+
+// Rate limiting
+const rateLimitResponse = {
+  success: false,
+  error: { code: 'RATE_LIMITED', message: 'Too many requests. Please try again later.' },
+};
+
+app.use('/api', rateLimit({ windowMs: 15 * 60 * 1000, limit: 300, standardHeaders: true, legacyHeaders: false, message: rateLimitResponse }));
+app.use(
+  '/api/auth/login',
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, error: { code: 'RATE_LIMITED', message: 'Too many login attempts. Please try again in 15 minutes.' } },
+  })
+);
+app.use(
+  ['/api/admissions/apply', '/api/admissions/upload', '/api/enquiries', '/api/enquiries/visit', '/api/payments/create-order', '/api/payments/verify', '/api/payments/webhook', '/api/analytics/event'],
+  rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false, message: rateLimitResponse })
+);
 
 // Logging
 app.use(requestLogger);

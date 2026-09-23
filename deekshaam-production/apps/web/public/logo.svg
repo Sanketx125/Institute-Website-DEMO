@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" width="320" height="80" fill="none">
+  <!-- Crest Emblem -->
+  <g transform="translate(10, 8)">
+    <!-- Shield Background -->
+    <path d="M32 0 L60 12 V38 C60 54 48 66 32 72 C16 66 4 54 4 38 V12 Z" fill="#0f2440" />
+    <path d="M32 3 L57 14 V38 C57 52 46 63 32 68 C18 63 7 52 7 38 V14 Z" fill="#1c3a5e" />
+    
+    <!-- Academic Torch & Book Motif -->
+    <!-- Open Book -->
+    <path d="M20 44 Q32 38 32 46 Q32 38 44 44 C41 50 34 49 32 52 C30 49 23 50 20 44 Z" fill="#f9fafb" />
+    <!-- Torch Flame (Brand Orange) -->
+    <path d="M32 18 C35 24 38 27 35 34 C33 30 31 30 32 18 Z" fill="#ea580c" />
+    <path d="M32 22 C34 26 36 28 34 33 C33 30 31 30 32 22 Z" fill="#ffedd5" />
+    <path d="M29 27 C28 30 29 33 32 35 C30 33 28 31 29 27 Z" fill="#c2410c" />
+    <!-- Star of Excellence -->
+    <polygon points="32,8 34,13 39,13 35,16 37,21 32,18 27,21 29,16 25,13 30,13" fill="#ffedd5" />
+  </g>
+
+  <!-- Typography -->
+  <text x="82" y="38" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="26" font-weight="800" fill="#0f2440" letter-spacing="-0.5">
+    DEEKSHAAM
+  </text>
+  <text x="83" y="58" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" font-weight="600" fill="#c2410c" letter-spacing="3.2">
+    BUSINESS SCHOOL
+  </text>
+</svg>

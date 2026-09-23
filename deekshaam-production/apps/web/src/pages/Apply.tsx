@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Icon } from '@deekshaam/ui';
 import { api } from '../services/api';
 import { SEOHead } from '../components/SEOHead';
+import { NotificationModal, NotificationType } from '../components/NotificationModal';
 
 declare global {
   interface Window {
@@ -33,6 +34,16 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
   const [submittedApp, setSubmittedApp] = useState<any>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [modalConfig, setModalConfig] = useState<{
+    isOpen: boolean;
+    title?: string;
+    message: string;
+    type?: NotificationType;
+  } | null>(null);
+
+  const showAlert = (message: string, title?: string, type: NotificationType = 'warning') => {
+    setModalConfig({ isOpen: true, title, message, type });
+  };
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -94,17 +105,17 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
   const validateStep = (currentStep: number): boolean => {
     if (currentStep === 1) {
       if (!formData.fullName || !formData.email || !formData.phone || !formData.dob || !formData.state || !formData.city) {
-        alert('Please fill out all personal profile fields.');
+        showAlert('Please fill out all personal profile fields including full name, email, phone, date of birth, state, and city.', 'Incomplete Profile', 'warning');
         return false;
       }
     } else if (currentStep === 2) {
       if (!formData.programSlug) {
-        alert('Please select your preferred undergraduate degree program.');
+        showAlert('Please select your preferred undergraduate degree program (BBA, BCA, or B.Com) to proceed.', 'Program Preference Required', 'warning');
         return false;
       }
     } else if (currentStep === 3) {
       if (!formData.board10 || !formData.year10 || !formData.board12 || !formData.year12 || !formData.percentage) {
-        alert('Please fill out all academic examination records.');
+        showAlert('Please fill out all academic examination records for 10th and 12th standards.', 'Academic Records Required', 'warning');
         return false;
       }
     }
@@ -156,7 +167,7 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
 
       localStorage.removeItem('dbs_application_draft');
     } catch (err: any) {
-      alert(`Submission failed: ${err.message}`);
+      showAlert(`Submission failed: ${err.message}`, 'Application Submission Error', 'error');
     } finally {
       setLoading(false);
     }
@@ -197,7 +208,7 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
               setPaymentSuccess(true);
               showToast('Payment verified successfully!');
             } catch (verErr: any) {
-              alert('Payment signature verification failed: ' + verErr.message);
+              showAlert('Payment signature verification failed: ' + verErr.message, 'Payment Verification Failed', 'error');
             }
           },
           prefill: {
@@ -224,7 +235,7 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
         showToast('Application fee payment recorded (Test Mode)!');
       }
     } catch (err: any) {
-      alert('Payment initialization failed: ' + err.message);
+      showAlert('Payment initialization failed: ' + err.message, 'Payment Gateway Error', 'error');
     } finally {
       setLoading(false);
     }
@@ -356,8 +367,13 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
                           name="dob"
                           value={formData.dob}
                           onChange={handleChange}
+                          max="2010-12-31"
+                          min="1995-01-01"
                           required
                         />
+                        <span style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px', display: 'block' }}>
+                          Eligible undergraduate birth window: 1995 – 2010
+                        </span>
                       </label>
                       <label>
                         State / UT *
@@ -722,6 +738,16 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
           )}
         </div>
       </div>
+
+      {modalConfig && (
+        <NotificationModal
+          isOpen={modalConfig.isOpen}
+          title={modalConfig.title}
+          message={modalConfig.message}
+          type={modalConfig.type}
+          onClose={() => setModalConfig(null)}
+        />
+      )}
     </>
   );
 };

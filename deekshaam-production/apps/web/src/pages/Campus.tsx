@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Icon } from '@deekshaam/ui';
 import { api } from '../services/api';
 import { SEOHead } from '../components/SEOHead';
+import { CampusMap } from '../components/CampusMap';
 
 interface CampusProps {
   onNavigate: (path: string) => void;
@@ -89,25 +90,8 @@ export const Campus: React.FC<CampusProps> = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* MAP & DIRECTIONS */}
-      <section className="section section-dark">
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '24px' }}>
-          <div>
-            <span className="eyebrow light">Campus Location</span>
-            <h2 style={{ fontSize: '32px', margin: '8px 0' }}>{settings?.address || 'Venkatpura, Kundana, Devanhalli Taluk, Bangalore - 562110'}</h2>
-            <p style={{ color: '#aaa', margin: 0 }}>Coordinates: {settings?.coordinates || '13.261667, 77.610694'}</p>
-          </div>
-
-          <a
-            className="btn btn-white"
-            href={`https://www.google.com/maps/search/?api=1&query=${settings?.coordinates || '13.261667,77.610694'}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Open in Google Maps <Icon name="arrow" size={16} />
-          </a>
-        </div>
-      </section>
+      {/* GEOSPATIAL MAP & DIRECTIONS */}
+      <CampusMap />
     </>
   );
 };

@@ -35,6 +35,8 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 body {
@@ -44,6 +46,9 @@ body {
   background: #fff;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
 }
 
 img {
@@ -1764,45 +1769,380 @@ button, input, select, textarea {
   color: #c92a2a;
 }
 
-/* RESPONSIVE */
-@media (max-width: 1050px) {
-  .desktop-nav {
-    display: none;
+/* ==========================================================================
+   KEYFRAME ANIMATIONS & UTILITIES
+   ========================================================================== */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
   }
-  .menu-open {
-    display: grid;
-  }
-  .hero-grid, .finder-grid, .split-feature, .career-band, .admissions-preview, .detail-grid, .curriculum-layout, .page-hero-grid, .about-grid {
-    grid-template-columns: 1fr;
-  }
-  .program-grid, .specialization-grid, .footer-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+  50% {
+    opacity: 0.45;
+    transform: scale(1.1);
   }
 }
 
-@media (max-width: 720px) {
-  .topbar {
-    display: none;
+@keyframes mapPulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.9;
   }
+  50% {
+    transform: scale(1.45);
+    opacity: 0.15;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0.9;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ==========================================================================
+   DEFAULT GRID DEFINITIONS
+   ========================================================================== */
+.map-layout-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 24px;
+}
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+/* ==========================================================================
+   RESPONSIVE OVERHAUL: TABLETS & IPADS (max-width: 1024px)
+   Apple iPad Pro 11", iPad Air 10.9", iPad 10th Gen, Samsung Galaxy Tab
+   ========================================================================== */
+@media (max-width: 1024px) {
+  :root {
+    --container: min(100%, calc(100vw - 36px));
+  }
+
+  .desktop-nav {
+    display: none !important;
+  }
+
+  .menu-open {
+    display: grid !important;
+  }
+
+  .hero {
+    padding: 40px 0 54px;
+  }
+
+  .hero-grid,
+  .finder-grid,
+  .split-feature,
+  .career-band,
+  .admissions-preview,
+  .detail-grid,
+  .curriculum-layout,
+  .page-hero-grid,
+  .about-grid,
+  .map-layout-grid {
+    grid-template-columns: 1fr !important;
+    gap: 36px !important;
+  }
+
+  .hero-media {
+    min-height: auto;
+    margin-top: 12px;
+  }
+
+  .hero-media img {
+    height: 380px;
+    border-radius: 24px;
+  }
+
+  .hero-card {
+    position: static !important;
+    margin-top: 18px !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  .hero-quick {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 16px !important;
+    margin-top: 32px !important;
+  }
+
+  .program-grid,
+  .specialization-grid,
+  .footer-grid,
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 20px !important;
+  }
+
+  .video-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .feature-image img {
+    height: 360px;
+    width: 100%;
+    object-fit: cover;
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVE OVERHAUL: SMALL TABLETS & PHABLETS (max-width: 768px)
+   iPad Mini portrait, Foldables, large phones in landscape
+   ========================================================================== */
+@media (max-width: 768px) {
+  .topbar {
+    display: none !important;
+  }
+
   .site-header {
     height: 68px;
   }
+
+  .section {
+    padding: 60px 0;
+  }
+
   .hero-copy h1 {
-    font-size: 44px;
+    font-size: clamp(34px, 7vw, 48px);
+    letter-spacing: -1.6px;
+    line-height: 1.05;
   }
-  .section-head h2 {
-    font-size: 32px;
+
+  .section-head h2,
+  .feature-copy h2,
+  .about-grid h2,
+  .mini-cta h2,
+  .cta-grid h2 {
+    font-size: clamp(26px, 5.5vw, 36px);
+    letter-spacing: -1px;
   }
-  .program-grid, .cert-preview, .cert-grid, .news-grid, .stats-grid, .footer-grid, .choice-grid, .form-grid {
-    grid-template-columns: 1fr;
+
+  .hero-quick {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
+
+  .career-steps {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+  }
+
+  .proof-items {
+    flex-wrap: wrap !important;
+    gap: 12px 20px !important;
+  }
+
   .admin-shell {
-    flex-direction: column;
+    flex-direction: column !important;
   }
+
   .admin-sidebar {
+    width: 100% !important;
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVE OVERHAUL: MOBILE SMARTPHONES (max-width: 640px)
+   iPhone 14/15/16 Pro, Samsung Galaxy S23/S24, Google Pixel
+   ========================================================================== */
+@media (max-width: 640px) {
+  :root {
+    --container: calc(100vw - 28px);
+  }
+
+  .container {
+    width: var(--container);
+    padding-inline: 0;
+  }
+
+  .site-header {
+    height: 62px;
+  }
+
+  .brand {
+    min-width: auto;
+    gap: 8px;
+  }
+
+  .brand-mark {
+    width: 36px;
+    height: 36px;
+  }
+
+  .brand-copy strong {
+    font-size: 16px;
+  }
+
+  .brand-copy span {
+    font-size: 8px;
+    letter-spacing: 1.5px;
+  }
+
+  .hero {
+    padding: 24px 0 40px;
+  }
+
+  .hero-copy h1 {
+    font-size: clamp(28px, 8.5vw, 38px);
+    letter-spacing: -1px;
+    line-height: 1.12;
+    margin: 10px 0 14px;
+  }
+
+  .hero-lead {
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  .hero-actions {
+    flex-direction: column !important;
     width: 100%;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .hero-actions .btn {
+    width: 100% !important;
+    min-height: 48px;
+  }
+
+  .hero-media img {
+    height: 230px !important;
+    border-radius: 16px;
+  }
+
+  .hero-quick {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+    padding-top: 18px !important;
+    margin-top: 24px !important;
+  }
+
+  .hero-quick strong {
+    font-size: 20px;
+  }
+
+  .hero-quick span {
+    font-size: 11px;
+  }
+
+  .section {
+    padding: 44px 0;
+  }
+
+  .section-head {
+    margin-bottom: 24px;
+  }
+
+  .section-head h2 {
+    font-size: clamp(23px, 7vw, 30px);
+    letter-spacing: -0.8px;
+  }
+
+  .section-head p {
+    font-size: 14px;
+  }
+
+  .program-grid,
+  .specialization-grid,
+  .footer-grid,
+  .cert-preview,
+  .cert-grid,
+  .news-grid,
+  .stats-grid,
+  .choice-grid,
+  .form-grid,
+  .video-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .logo-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .logo-tile {
+    padding: 12px 8px !important;
+  }
+
+  .logo-tile img {
+    max-height: 26px !important;
+  }
+
+  .logo-tile span {
+    font-size: 11px !important;
+  }
+
+  .career-steps {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .process-card {
+    padding: 18px 14px !important;
+  }
+
+  .cta-section {
+    padding: 44px 0;
+  }
+
+  .cta-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 22px !important;
+  }
+
+  .cta-grid > div:last-child {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 10px !important;
+  }
+
+  .cta-grid .btn {
+    width: 100% !important;
+  }
+
+  .floating-pulse-btn {
+    bottom: 16px !important;
+    right: 16px !important;
+    padding: 9px 15px !important;
+    font-size: 11px !important;
+  }
+
+  /* Prevent auto-zooming on iOS inputs by ensuring at least 16px font */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
   }
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Icon } from '@deekshaam/ui';
 import { api } from '../services/api';
 import { SEOHead } from '../components/SEOHead';
+import { NotificationModal } from '../components/NotificationModal';
 
 interface VisitProps {
   onNavigate: (path: string) => void;
@@ -20,6 +21,7 @@ export const Visit: React.FC<VisitProps> = ({ onNavigate }) => {
   });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     api.getSettings().then(setSettings).catch(console.error);
@@ -33,7 +35,7 @@ export const Visit: React.FC<VisitProps> = ({ onNavigate }) => {
       await api.submitCampusVisit(formData);
       setSubmitted(true);
     } catch (err: any) {
-      alert(`Request failed: ${err.message}`);
+      setErrorMessage(`Request failed: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -203,7 +205,7 @@ export const Visit: React.FC<VisitProps> = ({ onNavigate }) => {
             <div style={{ marginTop: '36px' }}>
               <a
                 className="btn btn-white full"
-                href={`https://www.google.com/maps/search/?api=1&query=${settings?.coordinates || '13.261667,77.610694'}`}
+                href={`https://www.google.com/maps/search/?api=1&query=${settings?.coordinates || '13.2611403,77.5988094'}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -213,6 +215,16 @@ export const Visit: React.FC<VisitProps> = ({ onNavigate }) => {
           </aside>
         </div>
       </section>
+
+      {errorMessage && (
+        <NotificationModal
+          isOpen={true}
+          title="Visit Request Notice"
+          message={errorMessage}
+          type="error"
+          onClose={() => setErrorMessage(null)}
+        />
+      )}
     </>
   );
 };

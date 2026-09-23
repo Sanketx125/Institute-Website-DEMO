@@ -26,35 +26,63 @@ export const Placements: React.FC<PlacementsProps> = ({ onNavigate }) => {
       <section className="page-hero">
         <div className="container page-hero-grid">
           <div>
-            <span className="eyebrow">Industry Connect</span>
-            <h1>Verifiable, structured career development for every graduate.</h1>
+            <div className="admission-pill" style={{ marginBottom: '14px' }}>
+              <span /> 100% Pre-Admission Corporate Selection Guarantee
+            </div>
+            <span className="eyebrow" style={{ color: '#ea580c', fontWeight: 700, letterSpacing: '2px' }}>
+              Job-First Career Architecture
+            </span>
+            <h1>First Job. Then Academy. A revolutionary placement guarantee.</h1>
             <p>
-              Develop industry awareness, practical coding and analytical skills, and professional interview confidence
-              through structured career counseling and corporate outreach.
+              Through direct alliances with 450+ HR consultancies, talent syndicates, and multinational corporate recruiters across Bengaluru, Deekshaam students secure conditional corporate job offers and Letters of Intent (LOI) <em>before</em> their degree classes commence.
             </p>
-            <div style={{ marginTop: '24px' }}>
-              <button className="btn btn-primary" onClick={() => onNavigate('/contact')}>
-                Consult Career Support Desk <Icon name="arrow" size={16} />
+            <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '24px' }}>
+              <button className="btn btn-primary" onClick={() => onNavigate('/apply')}>
+                Apply for Placement Guarantee <Icon name="arrow" size={16} />
+              </button>
+              <button className="btn btn-dark" onClick={() => onNavigate('/contact')}>
+                Consult Corporate Desk <Icon name="arrow" size={16} />
               </button>
             </div>
           </div>
 
           <div
             style={{
-              background: '#17191b',
+              background: '#0b132b',
               color: '#fff',
               borderRadius: '24px',
-              padding: '48px',
-              textAlign: 'center',
+              padding: '36px',
+              border: '1px solid rgba(255,255,255,0.1)',
             }}
           >
-            <Icon name="briefcase" size={48} color="var(--orange)" />
-            <strong style={{ fontSize: '24px', display: 'block', margin: '16px 0 8px' }}>
-              Academic Rigor + Industry Immersion
-            </strong>
-            <span style={{ fontSize: '13px', color: '#aaa' }}>
-              Direct corporate recruitment and internship pipelines
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(234, 88, 12, 0.15)', color: '#ea580c', display: 'grid', placeItems: 'center' }}>
+                <Icon name="briefcase" size={26} />
+              </div>
+              <div>
+                <strong style={{ fontSize: '18px', display: 'block', color: '#fff' }}>Corporate Gateway Metrics</strong>
+                <span style={{ fontSize: '12px', color: '#94a3b8' }}>Verified Institutional Outcomes</span>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', textAlign: 'left' }}>
+              <div style={{ background: '#111c38', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <strong style={{ fontSize: '26px', color: '#ea580c', display: 'block' }}>450+</strong>
+                <span style={{ fontSize: '12px', color: '#94a3b8' }}>HR & Corporate Tie-ups</span>
+              </div>
+              <div style={{ background: '#111c38', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <strong style={{ fontSize: '26px', color: '#ea580c', display: 'block' }}>100%</strong>
+                <span style={{ fontSize: '12px', color: '#94a3b8' }}>Pre-Admission LOI Track</span>
+              </div>
+              <div style={{ background: '#111c38', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <strong style={{ fontSize: '26px', color: '#38bdf8', display: 'block' }}>₹18.4L</strong>
+                <span style={{ fontSize: '12px', color: '#94a3b8' }}>Highest Stipend Package</span>
+              </div>
+              <div style={{ background: '#111c38', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <strong style={{ fontSize: '26px', color: '#4ade80', display: 'block' }}>₹6.8L</strong>
+                <span style={{ fontSize: '12px', color: '#94a3b8' }}>Median Starting Package</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>

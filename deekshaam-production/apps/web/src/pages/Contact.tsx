@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Icon } from '@deekshaam/ui';
 import { api } from '../services/api';
 import { SEOHead } from '../components/SEOHead';
+import { NotificationModal } from '../components/NotificationModal';
 
 interface ContactProps {
   onNavigate: (path: string) => void;
@@ -18,6 +19,7 @@ export const Contact: React.FC<ContactProps> = ({ onNavigate }) => {
   });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     api.getSettings().then(setSettings).catch(console.error);
@@ -34,7 +36,7 @@ export const Contact: React.FC<ContactProps> = ({ onNavigate }) => {
       });
       setSubmitted(true);
     } catch (err: any) {
-      alert(`Submission failed: ${err.message}`);
+      setErrorMessage(`Submission failed: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -82,10 +84,10 @@ export const Contact: React.FC<ContactProps> = ({ onNavigate }) => {
               <Icon name="map" size={24} color="var(--orange)" />
               <span className="eyebrow" style={{ marginTop: '8px' }}>Campus Address</span>
               <p style={{ margin: '6px 0 12px', fontSize: '14px', lineHeight: '1.5' }}>
-                {settings?.address || 'Venkatpura, Kundana, Devanhalli Taluk, Bangalore - 562110'}
+                {settings?.address || 'MY Samruddhi Nagar, Venkatapura Village, PO-Kundana Hobli, Devanahalli Taluk, Bangalore - 562110'}
               </p>
               <a
-                href={`https://www.google.com/maps/search/?api=1&query=${settings?.coordinates || '13.261667,77.610694'}`}
+                href={`https://www.google.com/maps/place/Deekshaam+Business+School/@${settings?.coordinates || '13.2611403,77.5988094'},17z`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-link"
@@ -182,6 +184,16 @@ export const Contact: React.FC<ContactProps> = ({ onNavigate }) => {
           )}
         </div>
       </section>
+
+      {errorMessage && (
+        <NotificationModal
+          isOpen={true}
+          title="Admissions Enquiry Notice"
+          message={errorMessage}
+          type="error"
+          onClose={() => setErrorMessage(null)}
+        />
+      )}
     </>
   );
 };

@@ -1,3 +1,7 @@
+const fs = require('fs');
+const original = fs.realpathSync;
+fs.realpathSync = (p, options) => { try { return original(p, options); } catch (error) { if (error && error.code === 'EPERM') return p; throw error; } };
+fs.realpathSync.native = fs.realpathSync;
 const path = require('path');
 
 async function startPlatform() {

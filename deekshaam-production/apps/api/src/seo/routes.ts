@@ -12,6 +12,7 @@ import {
 const router = Router();
 
 router.get('/sitemap.xml', getSitemap);
+router.get('/sitemap-index.xml', getSitemapIndex);
 router.get('/sitemap_index.xml', getSitemapIndex);
 router.get('/sitemap-pages.xml', getSitemapPages);
 router.get('/sitemap-programs.xml', getSitemapPrograms);

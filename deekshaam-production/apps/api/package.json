@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@deekshaam/types": "*",
+    "@deekshaam/top3": "*",
     "@deekshaam/validation": "*",
     "@prisma/client": "^5.10.2",
     "bcryptjs": "^2.4.3",

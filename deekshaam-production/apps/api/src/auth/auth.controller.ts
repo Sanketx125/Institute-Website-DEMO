@@ -31,6 +31,7 @@ export async function login(req: Request, res: Response) {
     email: user.email,
     name: user.name,
     role: user.role,
+    sessionVersion: user.sessionVersion || 0,
   };
 
   const token = jwt.sign(tokenPayload, config.jwt.secret, {

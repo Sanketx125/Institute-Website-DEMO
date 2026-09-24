@@ -1,7 +1,9 @@
+import { SiteImage } from '../components/SiteImage';
 import React, { useState, useEffect } from 'react';
 import { Icon } from '@deekshaam/ui';
 import { api } from '../services/api';
 import { SEOHead } from '../components/SEOHead';
+import { VideoShowcase } from '../components/VideoShowcase';
 
 interface AboutProps {
   onNavigate: (path: string) => void;
@@ -29,31 +31,16 @@ export const About: React.FC<AboutProps> = ({ onNavigate }) => {
         <div className="container page-hero-grid">
           <div>
             <span className="eyebrow">About Deekshaam</span>
-            <h1>Higher education connecting academic rigor with real opportunity.</h1>
+            <h1>Where ambition meets a place to grow.</h1>
             <p>
-              Managed by {settings?.managedBy || 'Deeksha Education Trust'} and founded in {settings?.founded || '2021'},
-              Deekshaam Business School offers undergraduate programs in Bengaluru engineered around practical learning,
-              modern laboratories, and verifiable career outcomes.
+              Deekshaam Business School brings applied learning, academic guidance and a close-knit campus community together in Devanahalli, Bengaluru.
             </p>
+            <div className="hero-actions"><button className="btn btn-primary" onClick={() => onNavigate('/programs')}>Explore our programs <Icon name="arrow" size={16} /></button><button className="btn btn-ghost" onClick={() => onNavigate('/visit')}>Visit the campus</button></div>
           </div>
-          <div
-            style={{
-              background: '#17191b',
-              color: '#fff',
-              borderRadius: '24px',
-              padding: '48px',
-              textAlign: 'center',
-            }}
-          >
-            <strong style={{ fontSize: '72px', color: 'var(--orange)', display: 'block', letterSpacing: '-4px' }}>
-              {settings?.founded || '2021'}
-            </strong>
-            <span style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '2px' }}>
-              Institution Journey Began
-            </span>
-          </div>
+          <div className="about-hero-image"><SiteImage src={settings?.campusImage || 'https://deekshaedu.in/wp-content/uploads/2025/03/Deekshaam-Buisness-School-Img-1.png'} alt="Classroom and student moments at Deekshaam" /><span>Established {settings?.founded || '2021'} · Devanahalli</span></div>
         </div>
       </section>
+      <section className="section about-story-band"><div className="container about-story-grid"><div><span className="eyebrow light">Our approach</span><h2>Learning moves beyond the classroom.</h2><p>Programs combine university-aligned teaching with projects, presentation practice and career conversations that help students connect what they learn to what comes next.</p></div><div className="about-story-points"><p><strong>01</strong> Learn the fundamentals</p><p><strong>02</strong> Apply ideas in projects</p><p><strong>03</strong> Prepare for the workplace</p></div></div></section>
 
       {/* CORE VALUES */}
       <section className="section">
@@ -95,6 +82,7 @@ export const About: React.FC<AboutProps> = ({ onNavigate }) => {
           </div>
         </div>
       </section>
+      <VideoShowcase category="Our story" title="See the people behind Deekshaam." description="Get to know the campus, the team and the way we learn together." />
 
       {/* LEADERSHIP GRID */}
       <section className="section section-tint">
@@ -105,10 +93,10 @@ export const About: React.FC<AboutProps> = ({ onNavigate }) => {
             <p>Meet the visionary educators and academic leaders guiding Deekshaam Business School.</p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))', gap: '24px' }}>
             {faculty.map((leader, i) => (
               <article key={i} className="info-card" style={{ padding: '0', overflow: 'hidden' }}>
-                <img
+                <SiteImage
                   src={leader.image}
                   alt={leader.name}
                   style={{ width: '100%', height: '320px', objectFit: 'cover' }}

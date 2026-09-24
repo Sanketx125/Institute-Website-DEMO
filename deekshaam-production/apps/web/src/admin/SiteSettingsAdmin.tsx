@@ -1,7 +1,9 @@
+import { useAdminFeedback } from './AdminFeedback';
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 
 export const SiteSettingsAdmin: React.FC = () => {
+  const notify = useAdminFeedback();
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [savedMessage, setSavedMessage] = useState(false);
@@ -10,7 +12,7 @@ export const SiteSettingsAdmin: React.FC = () => {
     api.getSettings().then((data) => {
       setSettings(data);
       setLoading(false);
-    });
+    }).catch((err: Error) => { setLoading(false); notify(err.message || 'Unable to load this workspace. Please try again.'); });
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -20,11 +22,12 @@ export const SiteSettingsAdmin: React.FC = () => {
       setSavedMessage(true);
       setTimeout(() => setSavedMessage(false), 3000);
     } catch (err: any) {
-      alert(`Update failed: ${err.message}`);
+      notify(`Update failed: ${err.message}`);
     }
   };
 
-  if (loading || !settings) return <div>Loading settings...</div>;
+  if (loading) return <div role="status">Loading settings...</div>;
+  if (!settings) return <div className="inline-feedback error" role="alert">Settings could not be loaded. Refresh the page to try again.</div>;
 
   return (
     <div style={{ maxWidth: '800px' }}>
@@ -40,7 +43,7 @@ export const SiteSettingsAdmin: React.FC = () => {
       )}
 
       <form onSubmit={handleSubmit} className="admin-card">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '16px' }}>
           <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '13px', fontWeight: 600 }}>
             Institute Legal Name
             <input
@@ -131,7 +134,7 @@ export const SiteSettingsAdmin: React.FC = () => {
         </label>
 
         <h3 style={{ fontSize: '16px', margin: '24px 0 12px' }}>Branding Images (URLs)</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '16px' }}>
           <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '13px', fontWeight: 600 }}>
             Official Logo URL
             <input

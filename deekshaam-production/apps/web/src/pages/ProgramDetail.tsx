@@ -1,3 +1,4 @@
+import { SiteImage } from '../components/SiteImage';
 import React, { useState, useEffect } from 'react';
 import { Icon } from '@deekshaam/ui';
 import { api } from '../services/api';
@@ -103,7 +104,7 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({ slug, onNavigate }
           </div>
 
           <div className="program-hero-card">
-            <img src={program.image} alt={program.title} />
+            <SiteImage src={program.image} alt={program.title} />
             <div className="facts">
               <div>
                 <small>Duration</small>

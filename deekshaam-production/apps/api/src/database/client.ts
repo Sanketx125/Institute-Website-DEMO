@@ -12,6 +12,7 @@ import {
   defaultRoles,
   defaultPermissions,
 } from './seed-data';
+import { jobsSeed } from './jobs-seed';
 import bcrypt from 'bcryptjs';
 import { requiredPassword } from '../config';
 
@@ -23,13 +24,16 @@ class MemoryDatabase {
   public siteSettings: any = { ...institutionSeed, id: 'settings-1' };
   public programs: any[] = [...programsSeed.map((p, idx) => ({ ...p, id: `prog-${idx + 1}` }))];
   public certifications: any[] = [...certificationsSeed.map((c, idx) => ({ ...c, id: `cert-${idx + 1}` }))];
+  public jobs: any[] = [...jobsSeed.map((j, idx) => ({ ...j, id: `job-${idx + 1}` }))];
   public faculty: any[] = [...leadersSeed.map((l, idx) => ({ ...l, id: `fac-${idx + 1}` }))];
   public news: any[] = [...newsSeed.map((n, idx) => ({ ...n, id: `news-${idx + 1}` }))];
   public events: any[] = [...eventsSeed.map((e, idx) => ({ ...e, id: `evt-${idx + 1}` }))];
   public notices: any[] = [...noticesSeed.map((n, idx) => ({ ...n, id: `not-${idx + 1}` }))];
   public gallery: any[] = [...gallerySeed.map((g, idx) => ({ ...g, id: `gal-${idx + 1}` }))];
+  public stories: any[] = [];
   public employers: any[] = [...employersSeed];
   public media: any[] = [];
+  public videos: any[] = [];
   public users: any[] = [
     {
       id: 'usr-admin-1',
@@ -87,7 +91,7 @@ class MemoryDatabase {
         url: `/news/${n.slug}`,
         type: 'News',
       })),
-      ...this.events.map((e) => ({
+      ...this.events.filter(e => e.status === 'PUBLISHED').map((e) => ({
         id: `idx-${e.id}`,
         title: e.title,
         content: `${e.summary} ${e.location || ''}`,

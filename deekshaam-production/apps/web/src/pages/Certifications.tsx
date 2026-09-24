@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Icon } from '@deekshaam/ui';
 import { api } from '../services/api';
 import { SEOHead } from '../components/SEOHead';
+import { TopPicks } from '../components/TopPicks';
 
 interface CertificationsProps {
   onNavigate: (path: string) => void;
@@ -29,13 +30,13 @@ export const Certifications: React.FC<CertificationsProps> = ({ onNavigate }) =>
         <div className="container page-hero-grid">
           <div>
             <span className="eyebrow">Career Acceleration</span>
-            <h1>Focused, practical certifications for the modern workforce.</h1>
+            <h1>New skills. More possibilities.</h1>
             <p>
               Enhance your employability through specialized 6 to 11-month certification pathways designed around
               high-growth technical and managerial competencies.
             </p>
             <div style={{ marginTop: '24px' }}>
-              <button className="btn btn-primary" onClick={() => onNavigate('/apply')}>
+              <button className="btn btn-primary" onClick={() => onNavigate('/contact')}>
                 Enquire About Certifications <Icon name="arrow" size={16} />
               </button>
             </div>
@@ -43,7 +44,7 @@ export const Certifications: React.FC<CertificationsProps> = ({ onNavigate }) =>
 
           <div
             style={{
-              background: '#17191b',
+              background: 'var(--navy-900)',
               color: '#fff',
               borderRadius: '24px',
               padding: '48px',
@@ -59,6 +60,16 @@ export const Certifications: React.FC<CertificationsProps> = ({ onNavigate }) =>
           </div>
         </div>
       </section>
+
+      <TopPicks
+        config={{
+          vertical: 'certification',
+          heading: 'Top 3 Certifications',
+          subheading: 'Highest-demand skill pathways ranked by hiring outcomes.',
+          ctaLabel: 'View Certification',
+        }}
+        onNavigate={onNavigate}
+      />
 
       {groups.map((group, gIdx) => (
         <section key={gIdx} className={`section ${gIdx % 2 === 1 ? 'section-tint' : ''}`}>
@@ -82,7 +93,7 @@ export const Certifications: React.FC<CertificationsProps> = ({ onNavigate }) =>
                         href="/apply"
                         onClick={(e) => {
                           e.preventDefault();
-                          onNavigate('/apply');
+                          onNavigate('/contact');
                         }}
                       >
                         Enquire <Icon name="arrow" size={15} />

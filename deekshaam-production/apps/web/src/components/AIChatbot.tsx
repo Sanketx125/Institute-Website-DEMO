@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Icon } from '@deekshaam/ui';
 import { api } from '../services/api';
+import { Dialog } from './Dialog';
 
 interface AIChatbotProps {
   onNavigate: (path: string) => void;
@@ -52,13 +53,13 @@ export const AIChatbot: React.FC<AIChatbotProps> = ({ onNavigate }) => {
   return (
     <>
       {/* Floating Action Button */}
-      <button className="ai-fab" onClick={() => setIsOpen(true)} title="Ask Deeksha Guide">
+      <button className="ai-fab" onClick={() => setIsOpen(true)} title="Ask Deeksha Guide" aria-label="Ask Deeksha Guide">
         <Icon name="robot" size={22} />
         <span>Ask Deeksha Guide</span>
       </button>
 
       {/* Slide-out Chat Panel */}
-      <div className={`ai-panel ${isOpen ? 'open' : ''}`}>
+      <Dialog open={isOpen} onClose={() => setIsOpen(false)} label="Deeksha Guide" className="guide-dialog">
         <div className="ai-head">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div
@@ -79,7 +80,7 @@ export const AIChatbot: React.FC<AIChatbotProps> = ({ onNavigate }) => {
               <div style={{ fontSize: '11px', color: 'var(--green)', fontWeight: 600 }}>Official Assistant &middot; Online</div>
             </div>
           </div>
-          <button className="icon-btn" onClick={() => setIsOpen(false)}>
+          <button className="icon-btn" aria-label="Close Deeksha Guide" onClick={() => setIsOpen(false)}>
             <Icon name="close" size={20} />
           </button>
         </div>
@@ -124,6 +125,7 @@ export const AIChatbot: React.FC<AIChatbotProps> = ({ onNavigate }) => {
         <div className="ai-input">
           <input
             type="text"
+            aria-label="Your question"
             placeholder="Type your question..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -133,7 +135,7 @@ export const AIChatbot: React.FC<AIChatbotProps> = ({ onNavigate }) => {
             Send
           </button>
         </div>
-      </div>
+      </Dialog>
     </>
   );
 };

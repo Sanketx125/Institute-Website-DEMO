@@ -7,6 +7,8 @@ import { AIChatbot } from './components/AIChatbot';
 // Public Pages
 import { Home } from './pages/Home';
 import { Programs } from './pages/Programs';
+import { Jobs } from './pages/Jobs';
+import { JobDetail } from './pages/JobDetail';
 import { ProgramDetail } from './pages/ProgramDetail';
 import { Compare } from './pages/Compare';
 import { Certifications } from './pages/Certifications';
@@ -24,12 +26,17 @@ import { Events } from './pages/Events';
 import { Gallery } from './pages/Gallery';
 
 // Admin System
+import { canAccess } from './admin/access';
+import { WorkspaceHome } from './admin/WorkspaceHome';
+import { AdminFeedbackProvider } from './admin/AdminFeedback';
 import { AdminLogin } from './admin/AdminLogin';
 import { AdminLayout } from './admin/AdminLayout';
 import { Dashboard } from './admin/Dashboard';
 import { SiteSettingsAdmin } from './admin/SiteSettingsAdmin';
 import { MediaAdmin } from './admin/MediaAdmin';
 import { ProgramsAdmin } from './admin/ProgramsAdmin';
+import { NoticesAdmin } from './admin/NoticesAdmin';
+import { EditorialAdmin } from './admin/EditorialAdmin';
 import { NewsAdmin } from './admin/NewsAdmin';
 import { AdmissionsAdmin } from './admin/AdmissionsAdmin';
 import { LeadsAdmin } from './admin/LeadsAdmin';
@@ -41,7 +48,9 @@ import { api, getAuthToken, clearAuthToken } from './services/api';
 export const App: React.FC = () => {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [adminTab, setAdminTab] = useState('dashboard');
+  const adminTab = currentPath.split('/')[2] || 'dashboard';
+  const setAdminTab = (tab: string) => navigate(`/admin/${tab}`);
+  const [authChecking, setAuthChecking] = useState(() => Boolean(getAuthToken()));
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [authToken, setAuthTokenState] = useState<string | null>(() => getAuthToken());
 
@@ -72,14 +81,17 @@ export const App: React.FC = () => {
       const token = getAuthToken();
       setAuthTokenState(token);
       if (token) {
+        setAuthChecking(true);
         api
           .getCurrentUser()
           .then((u) => setCurrentUser(u))
           .catch(() => {
+            clearAuthToken();
             setCurrentUser(null);
             setAuthTokenState(null);
-          });
+          }).finally(() => setAuthChecking(false));
       } else {
+        setAuthChecking(false);
         setCurrentUser(null);
       }
     }
@@ -87,7 +99,7 @@ export const App: React.FC = () => {
 
   const navigate = (path: string) => {
     window.history.pushState({}, '', path);
-    setCurrentPath(path);
+    setCurrentPath(path.split('?')[0]);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -95,7 +107,8 @@ export const App: React.FC = () => {
   const renderContent = () => {
     // Admin Routes
     if (currentPath.startsWith('/admin')) {
-      const isAuthed = Boolean(authToken || getAuthToken() || currentUser);
+      if (authChecking && !currentUser) return <div className="workspace-loading" role="status">Opening your workspace...</div>;
+      const isAuthed = Boolean(authToken && currentUser);
       if (currentPath === '/admin/login' || !isAuthed) {
         return (
           <AdminLogin
@@ -103,17 +116,17 @@ export const App: React.FC = () => {
               const token = getAuthToken();
               setAuthTokenState(token);
               if (user) setCurrentUser(user);
-              setAdminTab('dashboard');
-              navigate('/admin');
+              navigate('/admin/dashboard');
             }}
             onNavigate={navigate}
           />
         );
       }
 
+      const selectedTab = canAccess(currentUser?.role, adminTab) ? adminTab : 'dashboard';
       return (
-        <AdminLayout
-          currentTab={adminTab}
+        <AdminFeedbackProvider><AdminLayout
+          currentTab={selectedTab}
           onSelectTab={setAdminTab}
           currentUser={currentUser}
           onLogout={() => {
@@ -124,17 +137,21 @@ export const App: React.FC = () => {
           }}
           onNavigatePublic={navigate}
         >
-          {adminTab === 'dashboard' && <Dashboard onSelectTab={setAdminTab} />}
-          {adminTab === 'settings' && <SiteSettingsAdmin />}
-          {adminTab === 'media' && <MediaAdmin />}
-          {adminTab === 'programs' && <ProgramsAdmin />}
-          {adminTab === 'news' && <NewsAdmin />}
-          {adminTab === 'admissions' && <AdmissionsAdmin />}
-          {adminTab === 'leads' && <LeadsAdmin />}
-          {adminTab === 'payments' && <PaymentsAdmin />}
-          {adminTab === 'users' && <UsersAdmin />}
-          {adminTab === 'audit' && <AuditLogsAdmin />}
-        </AdminLayout>
+          {selectedTab === 'dashboard' && (currentUser?.role === 'SUPER_ADMIN' ? <Dashboard onSelectTab={setAdminTab} /> : <WorkspaceHome user={currentUser} onSelectTab={setAdminTab} />)}
+          {selectedTab === 'settings' && <SiteSettingsAdmin />}
+          {selectedTab === 'media' && <MediaAdmin />}
+          {selectedTab === 'programs' && <ProgramsAdmin />}
+          {selectedTab === 'news' && <NewsAdmin />}
+          {selectedTab === 'notices' && <NoticesAdmin />}
+          {selectedTab === 'stories' && <EditorialAdmin kind="stories" />}
+          {selectedTab === 'events' && <EditorialAdmin kind="events" />}
+          {selectedTab === 'gallery' && <EditorialAdmin kind="gallery" />}
+          {selectedTab === 'admissions' && <AdmissionsAdmin />}
+          {selectedTab === 'leads' && <LeadsAdmin />}
+          {selectedTab === 'payments' && <PaymentsAdmin />}
+          {selectedTab === 'users' && <UsersAdmin />}
+          {selectedTab === 'audit' && <AuditLogsAdmin />}
+        </AdminLayout></AdminFeedbackProvider>
       );
     }
 
@@ -142,6 +159,11 @@ export const App: React.FC = () => {
     if (currentPath.startsWith('/programs/') && currentPath.split('/')[2]) {
       const slug = currentPath.split('/')[2];
       return <ProgramDetail slug={slug} onNavigate={navigate} />;
+    }
+
+    if (currentPath.startsWith('/jobs/') && currentPath.split('/')[2]) {
+      const slug = currentPath.split('/')[2];
+      return <JobDetail slug={slug} onNavigate={navigate} />;
     }
 
     // Dynamic news route: /news/:slug
@@ -156,6 +178,8 @@ export const App: React.FC = () => {
         return <Home onNavigate={navigate} />;
       case '/programs':
         return <Programs onNavigate={navigate} />;
+      case '/jobs':
+        return <Jobs onNavigate={navigate} />;
       case '/compare':
         return <Compare onNavigate={navigate} />;
       case '/certifications':

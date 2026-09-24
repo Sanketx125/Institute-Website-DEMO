@@ -1,7 +1,9 @@
+import { useAdminFeedback } from './AdminFeedback';
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 
 export const AuditLogsAdmin: React.FC = () => {
+  const notify = useAdminFeedback();
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -9,14 +11,14 @@ export const AuditLogsAdmin: React.FC = () => {
     api.getAuditLogs().then((data) => {
       setLogs(data || []);
       setLoading(false);
-    });
+    }).catch((err: Error) => { setLoading(false); notify(err.message || 'Unable to load this workspace. Please try again.'); });
   }, []);
 
   return (
     <div>
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '28px', margin: '0 0 6px' }}>Immutable Security Audit Trail</h1>
-        <p style={{ color: '#777', margin: 0 }}>Cryptographically timestamped logs tracking every administrative action and status update.</p>
+        <h1 style={{ fontSize: '28px', margin: '0 0 6px' }}>Activity log</h1>
+        <p style={{ color: '#777', margin: 0 }}>Recorded sign-ins, content changes and application updates.</p>
       </div>
 
       <div className="admin-card">
@@ -27,7 +29,7 @@ export const AuditLogsAdmin: React.FC = () => {
             No audit records captured yet.
           </div>
         ) : (
-          <div className="table-responsive">
+          <div className="table-responsive" role="region" aria-label="Scrollable data table" tabIndex={0}>
             <table className="data-table">
               <thead>
                 <tr>

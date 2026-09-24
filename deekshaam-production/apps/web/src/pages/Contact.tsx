@@ -50,39 +50,39 @@ export const Contact: React.FC<ContactProps> = ({ onNavigate }) => {
         canonicalPath="/contact"
       />
 
-      <section className="page-hero compact">
-        <div className="container">
-          <span className="eyebrow">Connect With Us</span>
-          <h1>Contact Deekshaam Business School</h1>
-          <p>Admissions counseling, campus visits, document verification, and academic guidance start here.</p>
-        </div>
+      <section className="page-hero contact-hero">
+        <div className="container contact-hero-grid"><div>
+          <span className="eyebrow">Talk to us</span>
+          <h1>Questions about your next step? We’re here.</h1>
+          <p>Ask about programs, admissions, visiting campus or student life. Reach the team in the way that works for you.</p>
+        </div><aside className="contact-hero-aside"><span className="eyebrow light">Start here</span><h2>How can we help?</h2><button onClick={() => onNavigate('/visit')}>Plan a campus visit <Icon name="arrow" size={16} /></button><button onClick={() => onNavigate('/programs')}>Explore programs <Icon name="arrow" size={16} /></button><button onClick={() => onNavigate('/track')}>Track an application <Icon name="arrow" size={16} /></button></aside></div>
       </section>
 
       <section className="section">
-        <div className="container" style={{ display: 'grid', gridTemplateColumns: '0.8fr 1.2fr', gap: '40px' }}>
+        <div className="container contact-layout">
           {/* CONTACT CARDS */}
-          <div style={{ display: 'grid', gap: '16px', alignContent: 'start' }}>
-            <div className="info-card">
+          <div className="contact-methods">
+            <div className="info-card contact-method-card">
               <Icon name="phone" size={24} color="var(--orange)" />
-              <span className="eyebrow" style={{ marginTop: '8px' }}>Admissions Hotline</span>
+              <span className="eyebrow">Call us</span>
               <h3>{settings?.phone || '+91 8971435297'}</h3>
               <a href={`tel:${settings?.phone || '+918971435297'}`} className="text-link">
-                Call Admissions Directly <Icon name="arrow" size={14} />
+                Call admissions <Icon name="arrow" size={14} />
               </a>
             </div>
 
-            <div className="info-card">
+            <div className="info-card contact-method-card">
               <Icon name="message" size={24} color="var(--orange)" />
-              <span className="eyebrow" style={{ marginTop: '8px' }}>Official Email</span>
+              <span className="eyebrow">Email us</span>
               <h3>{settings?.admissionEmail || 'admission@deekshaedu.in'}</h3>
               <a href={`mailto:${settings?.admissionEmail || 'admission@deekshaedu.in'}`} className="text-link">
-                Send an Email Query <Icon name="arrow" size={14} />
+                Send an email <Icon name="arrow" size={14} />
               </a>
             </div>
 
-            <div className="info-card">
+            <div className="info-card contact-method-card">
               <Icon name="map" size={24} color="var(--orange)" />
-              <span className="eyebrow" style={{ marginTop: '8px' }}>Campus Address</span>
+              <span className="eyebrow">Find us</span>
               <p style={{ margin: '6px 0 12px', fontSize: '14px', lineHeight: '1.5' }}>
                 {settings?.address || 'MY Samruddhi Nagar, Venkatapura Village, PO-Kundana Hobli, Devanahalli Taluk, Bangalore - 562110'}
               </p>
@@ -92,16 +92,16 @@ export const Contact: React.FC<ContactProps> = ({ onNavigate }) => {
                 rel="noopener noreferrer"
                 className="text-link"
               >
-                Open Google Maps Directions <Icon name="arrow" size={14} />
+                Get directions <Icon name="arrow" size={14} />
               </a>
             </div>
           </div>
 
           {/* CALLBACK FORM */}
           {!submitted ? (
-            <form className="enquiry-form" onSubmit={handleSubmit}>
+            <form className="enquiry-form contact-enquiry" onSubmit={handleSubmit}>
               <span className="eyebrow">Request a Callback</span>
-              <h2>Speak with an Admissions Advisor</h2>
+              <h2>Let’s talk about your plans.</h2>
               <p style={{ color: '#666', marginBottom: '24px' }}>
                 Leave your details below and our counselors will get in touch to assist with degree selection and admissions.
               </p>

@@ -58,7 +58,7 @@ export const Visit: React.FC<VisitProps> = ({ onNavigate }) => {
       </section>
 
       <section className="section section-tint">
-        <div className="container" style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '40px' }}>
+        <div className="container visit-layout">
           {/* VISIT FORM */}
           {!submitted ? (
             <form className="visit-form" onSubmit={handleSubmit}>
@@ -167,7 +167,7 @@ export const Visit: React.FC<VisitProps> = ({ onNavigate }) => {
           {/* ASIDE INFO */}
           <aside
             style={{
-              background: '#17191b',
+              background: 'var(--navy-900)',
               color: '#fff',
               borderRadius: '20px',
               padding: '36px',
@@ -177,7 +177,7 @@ export const Visit: React.FC<VisitProps> = ({ onNavigate }) => {
             }}
           >
             <div>
-              <span className="eyebrow light">Location & Coordinates</span>
+              <span className="eyebrow light">Plan your visit</span>
               <h2 style={{ fontSize: '28px', margin: '8px 0 16px' }}>See the campus in person.</h2>
               <p style={{ color: '#aaa', lineHeight: '1.6' }}>
                 A campus visit allows students and parents to evaluate computer laboratories, lecture halls, residential

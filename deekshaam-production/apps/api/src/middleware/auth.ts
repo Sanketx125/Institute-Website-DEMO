@@ -24,7 +24,11 @@ export function authenticate(req: AuthenticatedRequest, res: Response, next: Nex
   const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, config.jwt.secret) as any;
-    req.user = decoded;
+    const user = memoryDb.users.find(u => u.id === decoded.id);
+    if (!user || !user.isActive || (user.sessionVersion || 0) !== (decoded.sessionVersion || 0)) {
+      return res.status(401).json({ success: false, error: { code: 'SESSION_REVOKED', message: 'Session expired. Please sign in again.' } });
+    }
+    req.user = { id: user.id, email: user.email, role: user.role, name: user.name };
     next();
   } catch (err) {
     return res.status(401).json({

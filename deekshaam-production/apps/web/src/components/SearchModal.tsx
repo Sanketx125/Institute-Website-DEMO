@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Icon } from '@deekshaam/ui';
+import { Dialog } from './Dialog';
 import { api } from '../services/api';
 
 interface SearchModalProps {
@@ -12,6 +13,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onNav
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!isOpen) {
@@ -20,23 +22,25 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onNav
       return;
     }
 
+    let active = true;
+    setError('');
     const timer = setTimeout(async () => {
       if (query.trim()) {
         setLoading(true);
         try {
           const res = await api.searchSite(query.trim());
-          setResults(res || []);
+          if (active) setResults(res || []);
         } catch (err) {
-          console.error('Search query failed', err);
+          if (active) { setResults([]); setError('Search is unavailable right now. Please try again.'); }
         } finally {
-          setLoading(false);
+          if (active) setLoading(false);
         }
       } else {
         setResults([]);
       }
     }, 200);
 
-    return () => clearTimeout(timer);
+    return () => { active = false; clearTimeout(timer); };
   }, [query, isOpen]);
 
   useEffect(() => {
@@ -52,23 +56,25 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onNav
   if (!isOpen) return null;
 
   return (
-    <div className="search-overlay" onClick={onClose}>
-      <div className="search-panel" onClick={(e) => e.stopPropagation()}>
+    <Dialog open={isOpen} onClose={onClose} label="Search Deekshaam" className="site-search-dialog">
+      <div>
         <div className="search-row">
           <Icon name="search" size={20} color="#777" />
           <input
+            aria-label="Search the website"
             type="text"
             placeholder="Search programs, admissions, hostel, certifications..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             autoFocus
           />
-          <button className="icon-btn" onClick={onClose}>
+          <button className="icon-btn" aria-label="Close search" onClick={onClose}>
             <Icon name="close" size={18} />
           </button>
         </div>
 
-        <div className="search-results">
+        <div className="search-results" aria-live="polite">
+          {error && <p role="alert" className="inline-feedback error">{error}</p>}
           {loading && <div style={{ padding: '24px', textAlign: 'center', color: '#777' }}>Searching...</div>}
 
           {!loading && results.length > 0 && (
@@ -91,7 +97,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onNav
             </div>
           )}
 
-          {!loading && query.trim() && results.length === 0 && (
+          {!loading && !error && query.trim() && results.length === 0 && (
             <div style={{ padding: '32px', textAlign: 'center', color: '#777' }}>
               No matches found for "{query}". Try "BBA", "BCA", "hostel", or "admissions".
             </div>
@@ -104,6 +110,6 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onNav
           )}
         </div>
       </div>
-    </div>
+    </Dialog>
   );
 };

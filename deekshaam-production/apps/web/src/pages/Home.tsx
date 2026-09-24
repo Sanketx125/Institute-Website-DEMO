@@ -1,3 +1,4 @@
+import { SiteImage } from '../components/SiteImage';
 import React, { useState, useEffect } from 'react';
 import { Icon } from '@deekshaam/ui';
 import { api } from '../services/api';
@@ -59,96 +60,29 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
         canonicalPath="/"
       />
 
-      {/* HERO SECTION */}
-      <section className="hero">
+      <section className="hero campus-hero">
         <div className="container hero-grid">
           <div className="hero-copy">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '14px' }}>
-              <div className="admission-pill">
-                <span /> 100% Pre-Admission Corporate Selection Guarantee
-              </div>
-              <button
-                type="button"
-                onClick={() => setPulseOpen(true)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '4px 12px',
-                  borderRadius: '9999px',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                  background: '#fff4e5',
-                  color: '#c2410c',
-                  border: '1px solid rgba(194, 65, 12, 0.25)',
-                  cursor: 'pointer',
-                }}
-                title="Open live announcements and placement alerts"
-              >
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ea580c', display: 'inline-block' }} />
-                Campus Pulse
-              </button>
-            </div>
-
-            <span className="eyebrow" style={{ color: '#ea580c', fontWeight: 700, letterSpacing: '2px' }}>
-              Job-First Higher Education Model
-            </span>
-            <h1>
-              Your Job Starts.<br />
-              <em>Before Your Degree Does.</em>
-            </h1>
-            <p className="hero-lead">
-              Bengaluru's pioneer institute where students secure corporate job placements and formal Letters of Intent (LOI) through 450+ HR consultancy tie-ups before academic induction begins. Learn with confidence, graduate with day-one seniority.
-            </p>
+            <span className="admission-pill"><span /> Admissions open &middot; 2026-27</span>
+            <span className="eyebrow">Deekshaam Business School &middot; Bengaluru</span>
+            <h1>A degree with<br /><em>direction.</em><br />A future with purpose.</h1>
+            <p className="hero-lead">Build your knowledge. Find your people. Get ready for the world of work with a degree that connects the classroom to your ambitions.</p>
             <div className="hero-actions">
-              <button className="btn btn-primary" onClick={() => onNavigate('/apply')}>
-                Claim Guaranteed Placement Track <Icon name="arrow" size={16} />
-              </button>
-              <button className="btn btn-dark" onClick={() => onNavigate('/programs')}>
-                Explore Academic Programs <Icon name="arrow" size={16} />
-              </button>
+              <button className="btn btn-primary" onClick={() => onNavigate('/programs')}>Find your program <Icon name="arrow" size={16} /></button>
+              <button className="btn btn-ghost" onClick={() => onNavigate('/visit')}>Experience the campus <Icon name="arrow" size={16} /></button>
             </div>
             <div className="hero-quick">
-              <div>
-                <strong>450+</strong>
-                <span>HR & Corporate Tie-ups</span>
-              </div>
-              <div>
-                <strong>100%</strong>
-                <span>Pre-Admission LOI</span>
-              </div>
-              <div>
-                <strong>₹18.4L</strong>
-                <span>Highest Package</span>
-              </div>
-              <div>
-                <strong>₹6.8L</strong>
-                <span>Median Package</span>
-              </div>
+              <div><strong>BBA &middot; BCA &middot; B.Com</strong><span>Three paths. Your potential.</span></div>
+              <div><strong>Learning + experience</strong><span>A career-focused education.</span></div>
             </div>
           </div>
-
           <div className="hero-media">
-            <img
-              src={settings?.heroImage || 'https://deekshaedu.in/wp-content/uploads/2025/03/Deekshaam-Buisness-School-Img-1.png'}
-              alt="Deekshaam Campus"
-            />
-            <div className="hero-card" style={{ background: '#0b132b', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <div className="hero-card-icon" style={{ background: '#ea580c', color: '#fff' }}>
-                <Icon name="briefcase" size={22} />
-              </div>
-              <div>
-                <strong style={{ color: '#ffedd5', fontSize: '15px' }}>First Job &bull; Then Academy</strong>
-                <span style={{ color: '#cbd5e1', fontSize: '13px' }}>
-                  Corporate HR interviews and conditional offer letter issued before degree commencement.
-                </span>
-              </div>
-            </div>
+            <SiteImage src={settings?.heroImage || 'https://deekshaedu.in/wp-content/uploads/2025/03/Deekshaam-Buisness-School-Img-1.png'} alt="Deekshaam Business School campus in Bengaluru" fetchPriority="high" />
+            <div className="campus-photo-label"><span>YOUR NEXT CHAPTER STARTS HERE</span><strong>A place to learn. Room to grow.</strong><small>Devanahalli, North Bengaluru</small></div>
           </div>
         </div>
       </section>
+      <div className="campus-update-bar"><div className="container"><span><span className="update-dot" /> Inside Deekshaam</span><p>Campus notices, academic updates and what’s next.</p><button onClick={() => setPulseOpen(true)}>Open noticeboard <Icon name="arrow" size={15} /></button></div></div>
 
       {/* PROOF STRIP */}
       <section className="proof-strip">
@@ -167,97 +101,12 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* "JOB BEFORE ACADEMY" CORE USP SECTION */}
-      <section className="section" style={{ background: '#080e1e', color: '#ffffff', padding: '90px 0', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: '-120px', right: '-120px', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(234, 88, 12, 0.15) 0%, rgba(8, 14, 30, 0) 70%)', pointerEvents: 'none' }} />
-        <div className="container">
-          <div style={{ textAlign: 'center', maxWidth: '820px', margin: '0 auto 50px' }}>
-            <span style={{ display: 'inline-block', padding: '5px 14px', borderRadius: '9999px', background: 'rgba(234, 88, 12, 0.15)', border: '1px solid rgba(234, 88, 12, 0.35)', color: '#ff9b6d', fontSize: '12px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '14px' }}>
-              The Deekshaam Breakthrough
-            </span>
-            <h2 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.8px', margin: '0 0 16px' }}>
-              The "Job-First, Academy-Next" Paradigm
-            </h2>
-            <p style={{ color: '#94a3b8', fontSize: '16px', lineHeight: 1.6, margin: 0 }}>
-              Why spend 3 years in uncertainty hoping for a campus drive? At Deekshaam, we flip higher education upside down: through direct syndication with 450+ HR consultancies and enterprise hiring panels, eligible students lock in their corporate job offer <em>before</em> their academic classes begin.
-            </p>
-          </div>
-
-          {/* 3 CORE PILLARS */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginBottom: '56px' }}>
-            <div style={{ background: '#111c38', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '32px 26px', position: 'relative' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(234, 88, 12, 0.15)', color: '#ea580c', display: 'grid', placeItems: 'center', marginBottom: '20px' }}>
-                <Icon name="briefcase" size={24} />
-              </div>
-              <h3 style={{ fontSize: '19px', fontWeight: 700, color: '#ffffff', margin: '0 0 10px' }}>450+ HR Consultancy Tie-ups</h3>
-              <p style={{ color: '#94a3b8', fontSize: '14px', lineHeight: 1.6, margin: 0 }}>
-                Direct enterprise MoUs with top multinational staffing firms and North Bengaluru corporate corridors. Recruiters match candidate talent profiles into verified entry-level roles.
-              </p>
-            </div>
-
-            <div style={{ background: '#111c38', border: '1px solid rgba(234, 88, 12, 0.3)', borderRadius: '16px', padding: '32px 26px', position: 'relative', boxShadow: '0 10px 30px rgba(234, 88, 12, 0.08)' }}>
-              <div style={{ position: 'absolute', top: '16px', right: '16px', background: '#ea580c', color: '#fff', fontSize: '10px', fontWeight: 800, padding: '3px 8px', borderRadius: '9999px', textTransform: 'uppercase' }}>
-                Core Guarantee
-              </div>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(234, 88, 12, 0.15)', color: '#ea580c', display: 'grid', placeItems: 'center', marginBottom: '20px' }}>
-                <Icon name="shield" size={24} />
-              </div>
-              <h3 style={{ fontSize: '19px', fontWeight: 700, color: '#ffffff', margin: '0 0 10px' }}>Pre-Admission LOI Contract</h3>
-              <p style={{ color: '#94a3b8', fontSize: '14px', lineHeight: 1.6, margin: 0 }}>
-                Qualified candidates receive a legally structured Letter of Intent (LOI) confirming company tier, starting designation, and salary scale before depositing academic fees.
-              </p>
-            </div>
-
-            <div style={{ background: '#111c38', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '32px 26px', position: 'relative' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(234, 88, 12, 0.15)', color: '#ea580c', display: 'grid', placeItems: 'center', marginBottom: '20px' }}>
-                <Icon name="laptop" size={24} />
-              </div>
-              <h3 style={{ fontSize: '19px', fontWeight: 700, color: '#ffffff', margin: '0 0 10px' }}>Day 1 Corporate Market Entry</h3>
-              <p style={{ color: '#94a3b8', fontSize: '14px', lineHeight: 1.6, margin: 0 }}>
-                Classroom learning is reverse-engineered around your designated employer's tech stack. You train on live industry projects, earn paid stipends, and bypass campus unemployment.
-              </p>
-            </div>
-          </div>
-
-          {/* 5-STEP ROADMAP TIMELINE */}
-          <div style={{ background: '#0e172e', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.08)', padding: '40px 32px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '32px' }}>
-              <div>
-                <span style={{ color: '#ea580c', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1.5px' }}>Step-by-Step Blueprint</span>
-                <h3 style={{ fontSize: '24px', fontWeight: 700, color: '#ffffff', margin: '4px 0 0' }}>How Your Placement is Locked In</h3>
-              </div>
-              <button className="btn btn-primary small" onClick={() => onNavigate('/apply')}>
-                Apply for Pre-Admission LOI <Icon name="arrow" size={14} />
-              </button>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-              {[
-                { step: '01', title: 'Talent Profiling', desc: 'Aptitude & interest evaluation with institutional corporate counselors.' },
-                { step: '02', title: 'HR Partner Match', desc: 'Candidate mapped to hiring requisitions of 450+ corporate tie-ups.' },
-                { step: '03', title: 'Pre-Admission LOI', desc: 'Formal Letter of Intent issued with guaranteed designation & compensation.' },
-                { step: '04', title: 'Curriculum Lock', desc: '3-year degree curriculum tailored directly to hiring partner tech stack.' },
-                { step: '05', title: 'Immediate Onboarding', desc: 'Direct corporate induction with zero gap, paid stipends & seniority.' },
-              ].map((s, idx) => (
-                <div key={idx} style={{ background: '#162244', borderRadius: '12px', padding: '20px 16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                  <span style={{ fontSize: '24px', fontWeight: 900, color: '#ea580c', opacity: 0.8, display: 'block', marginBottom: '8px' }}>
-                    {s.step}
-                  </span>
-                  <strong style={{ display: 'block', fontSize: '15px', color: '#ffffff', marginBottom: '6px' }}>{s.title}</strong>
-                  <p style={{ color: '#94a3b8', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>{s.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* PROGRAMS SECTION */}
       <section className="section">
         <div className="container">
           <div className="section-head">
             <span className="eyebrow">Academic Programs</span>
-            <h2>Choose a degree aligned with where you want to lead.</h2>
+            <h2>Find what moves you forward.</h2>
             <p>Explore undergraduate programs designed in consultation with university guidelines and industry needs.</p>
           </div>
 
@@ -265,7 +114,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
             {programs.map((p) => (
               <article key={p.slug} className="program-card">
                 <div className="program-image">
-                  <img src={p.image} alt={p.title} />
+                  <SiteImage src={p.image} alt={p.title} />
                   <span>{p.duration}</span>
                 </div>
                 <div className="program-body">
@@ -306,9 +155,9 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
         <div className="container finder-grid">
           <div>
             <div className="section-head">
-              <span className="eyebrow">Smart Discovery</span>
+              <span className="eyebrow">Find your fit</span>
               <h2>Not sure what to study? Start with your interest.</h2>
-              <p>A quick decision support tool for students and parents before speaking with admissions counselors.</p>
+              <p>Start with what interests you. We’ll help you explore the degree that fits.</p>
             </div>
 
             <div className="finder-options">
@@ -367,7 +216,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
       <section className="section">
         <div className="container split-feature">
           <div className="feature-image">
-            <img
+            <SiteImage
               src={settings?.campusImage || 'https://deekshaedu.in/wp-content/uploads/2025/03/Deekshaam-Buisness-School-Img-1.png'}
               alt="DBS Campus"
             />
@@ -422,7 +271,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
           <div className="logo-grid">
             {employers.map((emp, i) => (
               <div key={i} className="logo-tile">
-                <img src={emp.logoUrl || emp[1]} alt={emp.name || emp[0]} loading="lazy" />
+                <SiteImage src={emp.logoUrl || emp[1]} alt={emp.name || emp[0]} loading="lazy" />
                 <span>{emp.name || emp[0]}</span>
               </div>
             ))}
@@ -430,36 +279,19 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* CAREER BAND */}
-      <section className="section section-dark">
-        <div className="container career-band">
-          <div>
-            <span className="eyebrow light">Career Progression</span>
-            <h2>From degree selection to career launch, keep the journey connected.</h2>
-            <p>Connect fundamental academic concepts with applied certifications and placement readiness from semester one.</p>
-          </div>
-          <div className="career-steps">
-            <div>
-              <span>01</span>
-              <strong>Foundations</strong>
-              <small>University syllabus & core academic understanding</small>
-            </div>
-            <div>
-              <span>02</span>
-              <strong>Applied Skills</strong>
-              <small>Specializations, labs & industry certifications</small>
-            </div>
-            <div>
-              <span>03</span>
-              <strong>Experience</strong>
-              <small>Internships, presentations & live project work</small>
-            </div>
-            <div>
-              <span>04</span>
-              <strong>Placement</strong>
-              <small>Campus drives, corporate interviews & placement support</small>
-            </div>
-          </div>
+      <section className="section career-pathway">
+        <div className="container">
+          <div className="pathway-heading"><div><span className="eyebrow light">The Deekshaam advantage</span><h2>Your career deserves<br />an early start.</h2></div><div><p>Our job-before-academy pathway brings career conversations into your admissions journey. Explore your strengths, meet industry partners and understand your next steps before classes begin.</p><button className="text-link" onClick={() => onNavigate('/placements')}>Explore career support <Icon name="arrow" size={16} /></button></div></div>
+          <ol className="pathway-steps">
+            {[
+              ['Discover', 'Talk through your interests and build your aptitude profile.'],
+              ['Connect', 'Explore suitable opportunities with corporate and HR partners.'],
+              ['Get clarity', 'Eligible candidates review a conditional letter of intent and its terms.'],
+              ['Start learning', 'Begin your degree with a clearer understanding of your career goals.'],
+              ['Build experience', 'Develop practical skills through projects and industry exposure.'],
+            ].map(([title, description], i) => <li key={title}><span className="step-number">0{i + 1}</span><h3>{title}</h3><p>{description}</p></li>)}
+          </ol>
+          <p className="pathway-note">Corporate selection and offers depend on eligibility, interviews and employer terms. Your admissions counselor can explain the pathway for your chosen program.</p>
         </div>
       </section>
 
@@ -496,7 +328,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
 
           <div style={{ textAlign: 'center', marginTop: '36px' }}>
             <button className="btn btn-ghost" onClick={() => onNavigate('/certifications')}>
-              Explore All 10 Professional Certifications <Icon name="arrow" size={16} />
+              Explore all certifications <Icon name="arrow" size={16} />
             </button>
           </div>
         </div>
@@ -564,7 +396,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
           </div>
 
           <div className="news-grid">
-            {news.map((item, idx) => (
+            {news.slice(0, 3).map((item, idx) => (
               <a
                 key={idx}
                 className="news-card"
@@ -578,7 +410,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
                   {item.category} &middot; {item.date}
                 </span>
                 <h3>{item.title}</h3>
-                <p>{item.summary || item.content.slice(0, 110) + '...'}</p>
+                <p>{item.summary || (item.content || '').slice(0, 110) + '...'}</p>
                 <span className="text-link">
                   Read Article <Icon name="arrow" size={14} />
                 </span>
@@ -599,7 +431,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
         <div className="container cta-grid">
           <div>
             <span className="eyebrow light">Next Steps</span>
-            <h2>Take the first step toward a future-proof career.</h2>
+            <h2>Your next chapter starts with a conversation.</h2>
             <p>Schedule a personal campus tour, consult our admissions counselors, or start an online application.</p>
           </div>
           <div>
@@ -620,36 +452,6 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
         onNavigate={onNavigate}
       />
 
-      {/* FLOATING QUICK PULSE TRIGGER BUTTON */}
-      <button
-        type="button"
-        onClick={() => setPulseOpen(true)}
-        className="floating-pulse-btn"
-        style={{
-          position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          zIndex: 90,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          background: '#0b132b',
-          color: '#ffffff',
-          border: '1px solid rgba(234, 88, 12, 0.4)',
-          borderRadius: '9999px',
-          padding: '12px 20px',
-          boxShadow: '0 12px 30px rgba(0,0,0,0.3)',
-          cursor: 'pointer',
-          fontWeight: 700,
-          fontSize: '13px',
-          transition: 'transform 0.2s, box-shadow 0.2s',
-        }}
-        title="Open Live Campus Pulse"
-      >
-        <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ea580c', display: 'inline-block' }} />
-        <span>Campus Pulse</span>
-        <span style={{ background: '#ea580c', color: '#fff', fontSize: '10px', padding: '2px 7px', borderRadius: '9999px', fontWeight: 800 }}>LIVE</span>
-      </button>
     </>
   );
 };

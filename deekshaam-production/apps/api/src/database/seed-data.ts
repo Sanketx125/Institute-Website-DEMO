@@ -202,7 +202,7 @@ export const eventsSeed = [
     location: 'Deekshaam Campus Auditorium, Devanahalli, Bangalore',
     summary: 'Welcoming new undergraduate cohorts with talks by industry executives and academic deans.',
     description: 'A full-day orientation welcoming undergraduate students in BBA, BCA, and B.Com with keynote speakers from top Bangalore technology and business firms.',
-    status: 'PUBLISHED'
+    status: 'DRAFT'
   },
   {
     slug: 'ai-and-future-of-work-symposium',
@@ -212,7 +212,7 @@ export const eventsSeed = [
     location: 'DBS Innovation Lab',
     summary: 'Hands-on symposium exploring generative AI applications in business and software engineering.',
     description: 'Faculty and student presentations on modern AI tools, automation in commerce, and emerging cloud infrastructure.',
-    status: 'PUBLISHED'
+    status: 'DRAFT'
   }
 ];
 
@@ -241,10 +241,10 @@ export const noticesSeed = [
 ];
 
 export const gallerySeed = [
-  { title: 'Deekshaam Main Campus Building', category: 'Campus', imageUrl: 'https://deekshaedu.in/wp-content/uploads/2025/03/Deekshaam-Buisness-School-Img-1.png', caption: 'Modern academic infrastructure in Devanahalli, Bangalore', order: 1, status: 'PUBLISHED' },
-  { title: 'Computer Applications Lab', category: 'Labs', imageUrl: 'https://deekshaedu.in/wp-content/uploads/2024/03/BCA.png', caption: 'High-speed computing lab for programming and data analytics', order: 2, status: 'PUBLISHED' },
-  { title: 'Business Seminar Hall', category: 'Academics', imageUrl: 'https://deekshaedu.in/wp-content/uploads/2024/03/2.png', caption: 'Interactive discussions, case studies, and presentations', order: 3, status: 'PUBLISHED' },
-  { title: 'Student Collaborative Spaces', category: 'Campus', imageUrl: 'https://deekshaedu.in/wp-content/uploads/elementor/thumbs/arts-1-qlt7sxguf5drb2bhqpcmn8bgp7vsuhsk0s0x3a09zc.jpg', caption: 'Spaces for project-centric learning and group discussions', order: 4, status: 'PUBLISHED' }
+  { title: 'Learning at Deekshaam', category: 'Campus', imageUrl: 'https://deekshaedu.in/wp-content/uploads/2025/03/Deekshaam-Buisness-School-Img-1.png', caption: 'A collage of classroom and student moments published by Deekshaam', order: 1, status: 'PUBLISHED' },
+  { title: 'Computer applications', category: 'Illustration', imageUrl: 'https://deekshaedu.in/wp-content/uploads/2024/03/BCA.png', caption: 'Illustrative program image', order: 2, status: 'PUBLISHED' },
+  { title: 'Business learning', category: 'Illustration', imageUrl: 'https://deekshaedu.in/wp-content/uploads/2024/03/2.png', caption: 'Illustrative program image', order: 3, status: 'PUBLISHED' },
+  { title: 'Collaborative learning', category: 'Illustration', imageUrl: 'https://deekshaedu.in/wp-content/uploads/elementor/thumbs/arts-1-qlt7sxguf5drb2bhqpcmn8bgp7vsuhsk0s0x3a09zc.jpg', caption: 'Illustrative student image', order: 4, status: 'PUBLISHED' }
 ];
 
 export const documentsSeed = [

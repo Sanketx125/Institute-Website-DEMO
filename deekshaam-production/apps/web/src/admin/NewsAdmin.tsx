@@ -1,7 +1,10 @@
+import { Dialog } from '../components/Dialog';
+import { useAdminFeedback } from './AdminFeedback';
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 
 export const NewsAdmin: React.FC = () => {
+  const notify = useAdminFeedback();
   const [news, setNews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -18,7 +21,7 @@ export const NewsAdmin: React.FC = () => {
     api.getNews().then((data) => {
       setNews(data || []);
       setLoading(false);
-    });
+    }).catch((err: Error) => { setLoading(false); notify(err.message || 'Unable to load this workspace. Please try again.'); });
   };
 
   useEffect(() => {
@@ -43,7 +46,7 @@ export const NewsAdmin: React.FC = () => {
       });
       fetchNews();
     } catch (err: any) {
-      alert(`Create failed: ${err.message}`);
+      notify(`Create failed: ${err.message}`);
     }
   };
 
@@ -64,7 +67,7 @@ export const NewsAdmin: React.FC = () => {
         {loading ? (
           <div>Loading articles...</div>
         ) : (
-          <div className="table-responsive">
+          <div className="table-responsive" role="region" aria-label="Scrollable data table" tabIndex={0}>
             <table className="data-table">
               <thead>
                 <tr>
@@ -90,8 +93,8 @@ export const NewsAdmin: React.FC = () => {
       </div>
 
       {creating && (
-        <div className="search-overlay" onClick={() => setCreating(false)}>
-          <div className="search-panel" style={{ maxWidth: '600px', padding: '28px' }} onClick={(e) => e.stopPropagation()}>
+        <Dialog open={true} onClose={() => setCreating(false)} label="Publish an article" className="workspace-editor">
+          <div className="workspace-editor-body">
             <h2 style={{ fontSize: '22px', margin: '0 0 16px' }}>Publish New Article</h2>
 
             <form onSubmit={handleCreate} style={{ display: 'grid', gap: '14px' }}>
@@ -106,7 +109,7 @@ export const NewsAdmin: React.FC = () => {
                 />
               </label>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '12px' }}>
                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px', fontWeight: 700 }}>
                   Category
                   <select
@@ -164,7 +167,7 @@ export const NewsAdmin: React.FC = () => {
               </div>
             </form>
           </div>
-        </div>
+        </Dialog>
       )}
     </div>
   );

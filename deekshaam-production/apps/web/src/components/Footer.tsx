@@ -56,7 +56,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
         <div>
           <h4>Administration</h4>
-          <a href="/admin" onClick={(e) => handleNav('/admin', e)}>Staff Portal Login</a>
+          <a href="/admin/login" onClick={(e) => handleNav('/admin/login', e)}>Staff sign in</a>
           <a href="/contact" onClick={(e) => handleNav('/contact', e)}>Grievance & Support</a>
           <a href="/privacy" onClick={(e) => handleNav('/privacy', e)}>Privacy Policy</a>
           <a href="/terms" onClick={(e) => handleNav('/terms', e)}>Terms & Conditions</a>

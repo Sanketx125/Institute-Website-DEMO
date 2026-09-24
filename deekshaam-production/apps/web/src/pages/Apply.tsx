@@ -179,6 +179,7 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
     try {
       setLoading(true);
       await loadRazorpaySdk();
+      if (!window.Razorpay) throw new Error('The payment gateway is unavailable right now. Your application is saved. Please try payment again later.');
 
       const orderRes = await api.createPaymentOrder({
         amount: 500, // 500 INR
@@ -190,7 +191,6 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
         notes: `Application fee for ${submittedApp.id}`,
       });
 
-      if (window.Razorpay) {
         const options = {
           key: orderRes.keyId,
           amount: orderRes.amount,
@@ -223,17 +223,6 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
 
         const rzp = new window.Razorpay(options);
         rzp.open();
-      } else {
-        // Mock fallback if Razorpay JS SDK is not loaded in offline mode
-        const mockPaymentId = `pay_mock_${Date.now()}`;
-        await api.verifyPayment({
-          orderId: orderRes.orderId,
-          paymentId: mockPaymentId,
-          signature: 'mock_signature_verified',
-        });
-        setPaymentSuccess(true);
-        showToast('Application fee payment recorded (Test Mode)!');
-      }
     } catch (err: any) {
       showAlert('Payment initialization failed: ' + err.message, 'Payment Gateway Error', 'error');
     } finally {
@@ -561,7 +550,7 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
                         padding: '16px',
                         marginBottom: '20px',
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
                         gap: '12px',
                         fontSize: '13px',
                       }}

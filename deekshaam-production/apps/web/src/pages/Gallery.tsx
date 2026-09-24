@@ -1,3 +1,4 @@
+import { SiteImage } from '../components/SiteImage';
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { SEOHead } from '../components/SEOHead';
@@ -22,22 +23,22 @@ export const Gallery: React.FC<GalleryProps> = ({ onNavigate }) => {
     <>
       <SEOHead
         title="Campus Photo Gallery"
-        description="View photographs of the Deekshaam Business School campus, academic laboratories, seminar halls, and student life."
+        description="Browse campus photographs and clearly labeled program visuals selected by the Deekshaam Business School team."
         canonicalPath="/gallery"
       />
 
       <section className="page-hero compact">
         <div className="container">
           <span className="eyebrow">Campus In Pictures</span>
-          <h1>Photo Gallery</h1>
-          <p>Explore our classrooms, laboratories, collaborative study spaces, and campus events.</p>
+          <h1>See life at Deekshaam.</h1>
+          <p>A closer look at our campus, learning spaces and community, through images chosen by the Deekshaam team.</p>
         </div>
       </section>
 
       <section className="section">
         <div className="container">
           {/* CATEGORY FILTER */}
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '32px', flexWrap: 'wrap' }}>
+          <div className="gallery-filters" role="group" aria-label="Filter gallery photos">
             {categories.map((cat) => (
               <button
                 key={cat}
@@ -50,31 +51,26 @@ export const Gallery: React.FC<GalleryProps> = ({ onNavigate }) => {
           </div>
 
           {/* GALLERY GRID */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+          <div className="gallery-page-grid">
             {filtered.map((item, i) => (
               <article
                 key={i}
-                style={{
-                  background: '#fff',
-                  border: '1px solid var(--line)',
-                  borderRadius: '16px',
-                  overflow: 'hidden',
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
-                }}
+                className="gallery-page-card"
               >
-                <img
+                <SiteImage
                   src={item.imageUrl}
                   alt={item.title}
-                  style={{ width: '100%', height: '260px', objectFit: 'cover' }}
+                  loading="lazy"
                 />
-                <div style={{ padding: '16px' }}>
+                <div>
                   <span className="eyebrow">{item.category}</span>
-                  <h3 style={{ margin: '6px 0 4px', fontSize: '18px' }}>{item.title}</h3>
-                  {item.caption && <p style={{ color: '#777', fontSize: '12px', margin: 0 }}>{item.caption}</p>}
+                  <h3>{item.title}</h3>
+                  {item.caption && <p>{item.caption}</p>}
                 </div>
               </article>
             ))}
           </div>
+          {!filtered.length && <div className="story-empty"><div><h2>No photos in this collection yet.</h2><p>New campus photographs will appear here as they are added.</p></div><button className="btn btn-ghost" onClick={() => onNavigate('/campus')}>Explore campus life</button></div>}
         </div>
       </section>
     </>

@@ -1,7 +1,9 @@
+import { SiteImage } from '../components/SiteImage';
 import React, { useState, useEffect } from 'react';
 import { Icon } from '@deekshaam/ui';
 import { api } from '../services/api';
 import { SEOHead } from '../components/SEOHead';
+import { VideoShowcase } from '../components/VideoShowcase';
 
 interface PlacementsProps {
   onNavigate: (path: string) => void;
@@ -9,9 +11,11 @@ interface PlacementsProps {
 
 export const Placements: React.FC<PlacementsProps> = ({ onNavigate }) => {
   const [employers, setEmployers] = useState<any[]>([]);
+  const [stories, setStories] = useState<any[]>([]);
 
   useEffect(() => {
     api.getEmployers().then(setEmployers).catch(console.error);
+    api.getStories().then(setStories).catch(console.error);
     api.trackEvent({ eventType: 'page_view', pagePath: '/placements' }).catch(() => {});
   }, []);
 
@@ -23,91 +27,31 @@ export const Placements: React.FC<PlacementsProps> = ({ onNavigate }) => {
         canonicalPath="/placements"
       />
 
-      <section className="page-hero">
-        <div className="container page-hero-grid">
-          <div>
-            <div className="admission-pill" style={{ marginBottom: '14px' }}>
-              <span /> 100% Pre-Admission Corporate Selection Guarantee
-            </div>
-            <span className="eyebrow" style={{ color: '#ea580c', fontWeight: 700, letterSpacing: '2px' }}>
-              Job-First Career Architecture
-            </span>
-            <h1>First Job. Then Academy. A revolutionary placement guarantee.</h1>
-            <p>
-              Through direct alliances with 450+ HR consultancies, talent syndicates, and multinational corporate recruiters across Bengaluru, Deekshaam students secure conditional corporate job offers and Letters of Intent (LOI) <em>before</em> their degree classes commence.
-            </p>
-            <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '24px' }}>
-              <button className="btn btn-primary" onClick={() => onNavigate('/apply')}>
-                Apply for Placement Guarantee <Icon name="arrow" size={16} />
-              </button>
-              <button className="btn btn-dark" onClick={() => onNavigate('/contact')}>
-                Consult Corporate Desk <Icon name="arrow" size={16} />
-              </button>
-            </div>
-          </div>
-
-          <div
-            style={{
-              background: '#0b132b',
-              color: '#fff',
-              borderRadius: '24px',
-              padding: '36px',
-              border: '1px solid rgba(255,255,255,0.1)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(234, 88, 12, 0.15)', color: '#ea580c', display: 'grid', placeItems: 'center' }}>
-                <Icon name="briefcase" size={26} />
-              </div>
-              <div>
-                <strong style={{ fontSize: '18px', display: 'block', color: '#fff' }}>Corporate Gateway Metrics</strong>
-                <span style={{ fontSize: '12px', color: '#94a3b8' }}>Verified Institutional Outcomes</span>
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', textAlign: 'left' }}>
-              <div style={{ background: '#111c38', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <strong style={{ fontSize: '26px', color: '#ea580c', display: 'block' }}>450+</strong>
-                <span style={{ fontSize: '12px', color: '#94a3b8' }}>HR & Corporate Tie-ups</span>
-              </div>
-              <div style={{ background: '#111c38', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <strong style={{ fontSize: '26px', color: '#ea580c', display: 'block' }}>100%</strong>
-                <span style={{ fontSize: '12px', color: '#94a3b8' }}>Pre-Admission LOI Track</span>
-              </div>
-              <div style={{ background: '#111c38', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <strong style={{ fontSize: '26px', color: '#38bdf8', display: 'block' }}>₹18.4L</strong>
-                <span style={{ fontSize: '12px', color: '#94a3b8' }}>Highest Stipend Package</span>
-              </div>
-              <div style={{ background: '#111c38', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <strong style={{ fontSize: '26px', color: '#4ade80', display: 'block' }}>₹6.8L</strong>
-                <span style={{ fontSize: '12px', color: '#94a3b8' }}>Median Starting Package</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <section className="page-hero"><div className="container page-hero-grid"><div><span className="eyebrow">Career development</span><h1>Build a career.<br />Start with direction.</h1><p>Connect your degree to the world of work through career guidance, practical projects and conversations with industry. Our job-before-academy pathway helps eligible students explore conditional opportunities before classes begin.</p><div className="hero-actions"><button className="btn btn-primary" onClick={() => onNavigate('/contact')}>Talk to a career counselor <Icon name="arrow" size={16} /></button><button className="btn btn-ghost" onClick={() => onNavigate('/programs')}>Explore programs</button></div></div><aside className="career-support-card"><span className="eyebrow light">From potential to preparation</span><h2>A clearer path forward.</h2>{[['01', 'Know your strengths', 'Build an aptitude profile and explore the roles that interest you.'], ['02', 'Meet industry', 'Prepare for interviews and connect with corporate and HR partners.'], ['03', 'Understand your offer', 'Review eligibility, selection criteria and employer conditions with your counselor.']].map(([number, title, description]) => <div key={number}><span>{number}</span><div><h3>{title}</h3><p>{description}</p></div></div>)}<p className="career-support-note">Selection and conditional offers depend on eligibility, interviews and employer terms.</p></aside></div></section>
 
       {/* RECRUITERS GRID */}
       <section className="section">
         <div className="container">
           <div className="logo-heading">
             <div>
-              <span className="eyebrow">Our Recruiters</span>
-              <h2>Organizations where DBS students build careers.</h2>
+              <span className="eyebrow">Industry connections</span>
+              <h2>A wider view of the working world.</h2>
             </div>
-            <p>Our students engage with top corporate brands across technology, consulting, FMCG, and finance.</p>
+            <p>Explore the industries and organizations represented in our career network. Ask the careers team for current opportunities and selection criteria.</p>
           </div>
 
           <div className="logo-grid">
             {employers.map((emp, i) => (
               <div key={i} className="logo-tile">
-                <img src={emp.logoUrl || emp[1]} alt={emp.name || emp[0]} loading="lazy" />
+                <SiteImage src={emp.logoUrl || emp[1]} alt={emp.name || emp[0]} loading="lazy" />
                 <span>{emp.name || emp[0]}</span>
               </div>
             ))}
           </div>
         </div>
       </section>
+
+      <section className="section section-tint editorial-section" id="student-stories"><div className="container"><div className="editorial-heading"><div><span className="eyebrow">Student journeys</span><h2>Career stories, in their own words.</h2><p>Hear directly from students about the path they took and the work they do now.</p></div></div>{stories.length ? <div className="story-grid">{stories.map(story => <article className="story-card" key={story.id}><div className="story-card-top">{story.imageUrl ? <SiteImage src={story.imageUrl} alt={story.name} loading="lazy" /> : <span className="story-initial" aria-hidden="true">{story.name?.charAt(0)}</span>}<div><span className="eyebrow">{story.program}{story.graduationYear ? ` · ${story.graduationYear}` : ''}</span><h3>{story.name}</h3><p>{story.outcome}</p></div></div><blockquote>“{story.quote}”</blockquote></article>)}</div> : <div className="story-empty"><div><span className="eyebrow">More to come</span><h3>Every career has a story.</h3><p>We are collecting first-hand stories from students and alumni. Speak with our careers team for current placement support and verified outcomes.</p></div><button className="btn btn-ghost" onClick={() => onNavigate('/contact')}>Ask about career support <Icon name="arrow" size={16} /></button></div>}</div></section>
 
       {/* CAREER DEVELOPMENT FRAMEWORK */}
       <section className="section section-tint">
@@ -118,7 +62,7 @@ export const Placements: React.FC<PlacementsProps> = ({ onNavigate }) => {
             <p>Preparation begins in semester one, not just during final-year campus drives.</p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 210px), 1fr))', gap: '20px' }}>
             <article className="info-card">
               <Icon name="user" size={24} color="var(--orange)" />
               <h3 style={{ fontSize: '18px', margin: '12px 0 6px' }}>Career Mapping</h3>
@@ -145,6 +89,8 @@ export const Placements: React.FC<PlacementsProps> = ({ onNavigate }) => {
           </div>
         </div>
       </section>
+      <VideoShowcase category="Career stories" title="Conversations about careers." description="Watch student and industry voices shared by Deekshaam." />
+      <section className="section career-final-cta"><div className="container editorial-cta"><div><span className="eyebrow light">Your next step</span><h2>Talk through your options with us.</h2><p>Get clear answers about programs, internships, and the support available to you.</p></div><button className="btn btn-primary" onClick={() => onNavigate('/contact')}>Contact the careers team <Icon name="arrow" size={16} /></button></div></section>
     </>
   );
 };

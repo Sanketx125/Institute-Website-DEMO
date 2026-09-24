@@ -1,8 +1,11 @@
+import { Dialog } from '../components/Dialog';
+import { useAdminFeedback } from './AdminFeedback';
 import React, { useState, useEffect } from 'react';
 import { Icon } from '@deekshaam/ui';
 import { api, getAuthToken } from '../services/api';
 
 export const AdmissionsAdmin: React.FC = () => {
+  const notify = useAdminFeedback();
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -15,7 +18,7 @@ export const AdmissionsAdmin: React.FC = () => {
     api.getAdminApplications(params).then((data) => {
       setApplications(data || []);
       setLoading(false);
-    });
+    }).catch((err: Error) => { setLoading(false); notify(err.message || 'Unable to load this workspace. Please try again.'); });
   };
 
   useEffect(() => {
@@ -41,18 +44,25 @@ export const AdmissionsAdmin: React.FC = () => {
         comment: statusComment,
       });
 
-      alert('Application status updated successfully.');
+      notify('Application status updated successfully.');
       setSelectedApp(null);
       setStatusComment('');
       fetchApplications();
     } catch (err: any) {
-      alert(`Update failed: ${err.message}`);
+      notify(`Update failed: ${err.message}`);
     }
   };
 
-  const handleDownloadDoc = (docId: string) => {
-    const token = getAuthToken();
-    window.open(`/api/admissions/admin/documents/${docId}/download?token=${token}`, '_blank');
+  const handleDownloadDoc = async (docId: string) => {
+    try {
+      const response = await fetch(`/api/admissions/admin/documents/${encodeURIComponent(docId)}/download`, { headers: { Authorization: `Bearer ${getAuthToken()}` } });
+      if (!response.ok) throw new Error('Unable to download this document. Please sign in again or retry.');
+      const url = URL.createObjectURL(await response.blob());
+      const link = document.createElement('a'); link.href = url;
+      link.download = response.headers.get('Content-Disposition')?.match(/filename="([^"\r\n]+)"/)?.[1] || `document-${docId}`;
+      document.body.appendChild(link); link.click(); link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err: any) { notify(err.message); }
   };
 
   return (
@@ -86,7 +96,7 @@ export const AdmissionsAdmin: React.FC = () => {
             No applications match the search criteria.
           </div>
         ) : (
-          <div className="table-responsive">
+          <div className="table-responsive" role="region" aria-label="Scrollable data table" tabIndex={0}>
             <table className="data-table">
               <thead>
                 <tr>
@@ -146,8 +156,8 @@ export const AdmissionsAdmin: React.FC = () => {
 
       {/* DETAIL & STATUS MODAL */}
       {selectedApp && (
-        <div className="search-overlay" onClick={() => setSelectedApp(null)}>
-          <div className="search-panel" style={{ maxWidth: '680px', padding: '28px' }} onClick={(e) => e.stopPropagation()}>
+        <Dialog open={true} onClose={() => setSelectedApp(null)} label="Review application" className="workspace-editor">
+          <div className="workspace-editor-body">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div>
                 <span className="eyebrow">{selectedApp.id}</span>
@@ -161,7 +171,7 @@ export const AdmissionsAdmin: React.FC = () => {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
                 gap: '16px',
                 background: '#faf9f7',
                 padding: '16px',
@@ -226,7 +236,7 @@ export const AdmissionsAdmin: React.FC = () => {
             {/* UPDATE STATUS FORM */}
             <form onSubmit={handleUpdateStatus} style={{ borderTop: '1px solid #eee', paddingTop: '16px' }}>
               <h3 style={{ fontSize: '15px', margin: '0 0 12px' }}>Update Admissions Stage</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '12px' }}>
                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px', fontWeight: 700 }}>
                   New Status
                   <select
@@ -265,7 +275,7 @@ export const AdmissionsAdmin: React.FC = () => {
               </div>
             </form>
           </div>
-        </div>
+        </Dialog>
       )}
     </div>
   );

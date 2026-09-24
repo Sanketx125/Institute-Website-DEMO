@@ -1,7 +1,9 @@
+import { SiteImage } from '../components/SiteImage';
 import React, { useState, useEffect } from 'react';
 import { Icon } from '@deekshaam/ui';
 import { api } from '../services/api';
 import { SEOHead } from '../components/SEOHead';
+import { TopPicks } from '../components/TopPicks';
 
 interface ProgramsProps {
   onNavigate: (path: string) => void;
@@ -31,13 +33,23 @@ export const Programs: React.FC<ProgramsProps> = ({ onNavigate }) => {
         </div>
       </section>
 
+      <TopPicks
+        config={{
+          vertical: 'program',
+          heading: 'Top 3 Degree Programs',
+          subheading: 'Ranked by curriculum depth, specialization breadth and placement outcomes.',
+          ctaLabel: 'View Program',
+        }}
+        onNavigate={onNavigate}
+      />
+
       <section className="section">
         <div className="container">
           <div className="program-grid">
             {programs.map((p) => (
               <article key={p.slug} className="program-card">
                 <div className="program-image">
-                  <img src={p.image} alt={p.title} />
+                  <SiteImage src={p.image} alt={p.title} />
                   <span>{p.duration}</span>
                 </div>
                 <div className="program-body">

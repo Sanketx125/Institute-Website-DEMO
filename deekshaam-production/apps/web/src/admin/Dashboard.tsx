@@ -10,6 +10,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectTab }) => {
   const [metrics, setMetrics] = useState<any>(null);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     Promise.all([api.getAnalyticsSummary(), api.getAuditLogs()])
@@ -19,7 +20,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectTab }) => {
         setLoading(false);
       })
       .catch((err) => {
-        console.error(err);
+        setError(err.message || 'Unable to load the overview.');
         setLoading(false);
       });
   }, []);
@@ -28,11 +29,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectTab }) => {
     return <div>Loading analytics dashboard...</div>;
   }
 
+  if (error) return <div className="inline-feedback error" role="alert">{error} Refresh this page to try again.</div>;
+
   return (
     <div>
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '28px', margin: '0 0 6px', letterSpacing: '-0.5px' }}>Executive Overview</h1>
-        <p style={{ color: '#777', margin: 0 }}>Operational metrics across admissions, leads, payments, and site traffic.</p>
+        <h1 style={{ fontSize: '28px', margin: '0 0 6px', letterSpacing: '-0.5px' }}>Your campus at a glance</h1>
+        <p style={{ color: '#777', margin: 0 }}>Applications, conversations and the latest activity across Deekshaam.</p>
       </div>
 
       {/* METRIC BOXES */}
@@ -58,14 +61,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectTab }) => {
         </div>
 
         <div className="stat-box">
-          <span>First-Party Traffic</span>
+          <span>Website visits</span>
           <strong>{metrics?.traffic?.pageViews || 0}</strong>
           <small>Tracked pageview events</small>
         </div>
       </div>
 
       {/* SHORTCUT ACTIONS */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 210px), 1fr))', gap: '16px', marginBottom: '32px' }}>
         <button
           className="admin-card"
           onClick={() => onSelectTab('admissions')}
@@ -109,8 +112,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectTab }) => {
 
       {/* RECENT AUDIT LOGS */}
       <div className="admin-card">
-        <h2 style={{ fontSize: '18px', margin: '0 0 16px' }}>Recent Administrative Audit Activity</h2>
-        <div className="table-responsive">
+        <h2 style={{ fontSize: '18px', margin: '0 0 16px' }}>Recent team activity</h2>
+        <div className="table-responsive" role="region" aria-label="Scrollable data table" tabIndex={0}>
           <table className="data-table">
             <thead>
               <tr>

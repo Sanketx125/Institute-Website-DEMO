@@ -112,7 +112,7 @@ npm run dev:web
 ### Staff Credentials:
 - **Super Admin Email**: `admin@deekshaam.edu`
 - **Admissions Staff Email**: `admissions@deekshaam.edu`
-- **Passwords**: no defaults are shipped. Set `ADMIN_PASSWORD` and `STAFF_PASSWORD` in `.env`. In development, if unset, a one-time random password is printed to the API console at startup. In production the API refuses to start without them.
+- **Passwords**: no defaults are shipped. Set `ADMIN_PASSWORD` and `STAFF_PASSWORD` in `.env`. The API refuses to start without them in every environment. The bootstrap admin email is `admin@deekshaam.edu`.
 
 ---
 

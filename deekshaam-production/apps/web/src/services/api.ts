@@ -39,6 +39,8 @@ async function request<T = any>(endpoint: string, options: RequestInit = {}): Pr
 }
 
 export const api = {
+  getVideos: () => request('/cms/videos'),
+  updateVideos: (videos: any[]) => request('/cms/videos', { method: 'PUT', body: JSON.stringify(videos) }),
   // CMS Public
   getSettings: () => request('/cms/settings'),
   getPrograms: () => request('/cms/programs'),
@@ -49,8 +51,15 @@ export const api = {
   getNews: () => request('/cms/news'),
   getNewsItem: (slug: string) => request(`/cms/news/${slug}`),
   getEvents: () => request('/cms/events'),
+  getAdminEvents: () => request('/cms/events/admin'),
+  getStories: () => request('/cms/stories'),
+  getAdminStories: () => request('/cms/stories/admin'),
   getNotices: () => request('/cms/notices'),
+  getAdminNotices: () => request('/cms/notices/admin'),
+  createNotice: (data: any) => request('/cms/notices', { method: 'POST', body: JSON.stringify(data) }),
+  updateNotice: (id: string, data: any) => request(`/cms/notices/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) }),
   getGallery: () => request('/cms/gallery'),
+  getAdminGallery: () => request('/cms/gallery/admin'),
 
   // Admissions
   submitApplication: (data: any) => request('/admissions/apply', { method: 'POST', body: JSON.stringify(data) }),
@@ -80,6 +89,17 @@ export const api = {
   // Search
   searchSite: (q: string) => request(`/search?q=${encodeURIComponent(q)}`),
 
+  // Top 3 engine
+  getTopThree: (vertical: string, filters: Record<string, string | undefined> = {}) => {
+    const params = new URLSearchParams({ vertical });
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v) params.set(k, v);
+    });
+    return request(`/top3?${params.toString()}`);
+  },
+  getJobs: () => request('/top3/jobs'),
+  getJob: (slug: string) => request(`/top3/jobs/${encodeURIComponent(slug)}`),
+
   // AI Assistant
   askAI: (message: string) => request('/ai/chat', { method: 'POST', body: JSON.stringify({ message }) }),
 
@@ -98,7 +118,11 @@ export const api = {
   deleteProgram: (id: string) => request(`/cms/programs/${id}`, { method: 'DELETE' }),
   createNews: (data: any) => request('/cms/news', { method: 'POST', body: JSON.stringify(data) }),
   createEvent: (data: any) => request('/cms/events', { method: 'POST', body: JSON.stringify(data) }),
+  updateEvent: (id: string, data: any) => request(`/cms/events/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) }),
   createGalleryItem: (data: any) => request('/cms/gallery', { method: 'POST', body: JSON.stringify(data) }),
+  updateGalleryItem: (id: string, data: any) => request(`/cms/gallery/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) }),
+  createStory: (data: any) => request('/cms/stories', { method: 'POST', body: JSON.stringify(data) }),
+  updateStory: (id: string, data: any) => request(`/cms/stories/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) }),
   getMedia: () => request('/cms/media'),
   uploadMedia: (formData: FormData) => request('/cms/media/upload', { method: 'POST', body: formData }),
   getAuditLogs: () => request('/cms/audit-logs'),
@@ -113,4 +137,5 @@ export const api = {
   getAdminPayments: (params: string = '') => request(`/payments/admin${params ? '?' + params : ''}`),
   getUsers: () => request('/users'),
   createUser: (data: any) => request('/users', { method: 'POST', body: JSON.stringify(data) }),
+  resetUserPassword: (id: string, password: string) => request(`/users/${encodeURIComponent(id)}/password`, { method: 'PUT', body: JSON.stringify({ password }) }),
 };

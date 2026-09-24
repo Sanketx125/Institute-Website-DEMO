@@ -5,9 +5,9 @@ import { checkDatabaseConnection } from './database/client';
 export async function bootstrap() {
   const isConnected = await checkDatabaseConnection();
   if (isConnected) {
-    console.log('[DATABASE] Connected successfully to PostgreSQL.');
+    console.log('[DATABASE] PostgreSQL is reachable. Current API controllers still use temporary in-memory data; changes will be lost when this server stops.');
   } else {
-    console.log('[DATABASE] PostgreSQL not detected on localhost:5432. Active with high-availability in-memory repository.');
+    console.log('[DATABASE] PostgreSQL is unavailable. Current API controllers use temporary in-memory data; changes will be lost when this server stops.');
   }
 
   const server = app.listen(config.port, () => {

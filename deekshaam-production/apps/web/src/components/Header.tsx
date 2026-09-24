@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Icon } from '@deekshaam/ui';
+import { Dialog } from './Dialog';
+import { CampusPulseDrawer } from './CampusPulseDrawer';
 
 interface HeaderProps {
   currentPath: string;
@@ -8,6 +10,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenSearch }) => {
+  const [noticeOpen, setNoticeOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleNav = (path: string, e: React.MouseEvent) => {
@@ -31,8 +34,8 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenS
             <a href="mailto:admission@deekshaedu.in">
               <Icon name="message" size={14} /> admission@deekshaedu.in
             </a>
-            <a href="/admin" onClick={(e) => handleNav('/admin', e)}>
-              <Icon name="user" size={14} /> Admin Portal
+            <a href="/admin/login" onClick={(e) => handleNav('/admin/login', e)}>
+              <Icon name="user" size={14} /> Staff sign in
             </a>
           </div>
         </div>
@@ -134,6 +137,9 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenS
             <a href="/placements" className={currentPath === '/placements' ? 'active' : ''} onClick={(e) => handleNav('/placements', e)}>
               Placements
             </a>
+            <a href="/jobs" className={currentPath === '/jobs' ? 'active' : ''} onClick={(e) => handleNav('/jobs', e)}>
+              Jobs
+            </a>
             <a href="/campus" className={currentPath === '/campus' ? 'active' : ''} onClick={(e) => handleNav('/campus', e)}>
               Campus Life
             </a>
@@ -147,56 +153,28 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenS
 
           {/* ACTIONS */}
           <div className="nav-actions">
-            <button className="icon-btn" onClick={onOpenSearch} title="Search (Ctrl + K)">
+            <button className="icon-btn" aria-label="Search website" onClick={onOpenSearch} title="Search (Ctrl + K)">
               <Icon name="search" size={19} />
             </button>
             <a href="/apply" className="btn btn-primary small" onClick={(e) => handleNav('/apply', e)}>
               Apply Now
             </a>
-            <button className="icon-btn menu-open" onClick={() => setMobileMenuOpen(true)}>
+            <button className="icon-btn menu-open" aria-label="Open navigation menu" aria-expanded={mobileMenuOpen} onClick={() => setMobileMenuOpen(true)}>
               <Icon name="menu" size={24} />
             </button>
           </div>
         </div>
       </header>
 
-      {/* MOBILE DRAWER */}
-      <div
-        className={`drawer-backdrop ${mobileMenuOpen ? 'show' : ''}`}
-        style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0,0,0,0.5)',
-          zIndex: 100,
-          opacity: mobileMenuOpen ? 1 : 0,
-          pointerEvents: mobileMenuOpen ? 'auto' : 'none',
-          transition: '0.2s',
-        }}
-        onClick={() => setMobileMenuOpen(false)}
-      />
-      <div
-        className={`mobile-drawer ${mobileMenuOpen ? 'open' : ''}`}
-        style={{
-          position: 'fixed',
-          right: mobileMenuOpen ? 0 : '-320px',
-          top: 0,
-          width: '300px',
-          height: '100vh',
-          background: '#fff',
-          zIndex: 101,
-          padding: '24px',
-          boxShadow: '-10px 0 30px rgba(0,0,0,0.15)',
-          transition: '0.3s ease',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
+      <CampusPulseDrawer isOpen={noticeOpen} onClose={() => setNoticeOpen(false)} onNavigate={onNavigate} />
+      <Dialog open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} label="Site navigation" className="navigation-drawer">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <strong>Menu</strong>
-          <button className="icon-btn" onClick={() => setMobileMenuOpen(false)}>
+          <strong>Explore Deekshaam</strong>
+          <button className="icon-btn" aria-label="Close navigation menu" onClick={() => setMobileMenuOpen(false)}>
             <Icon name="close" size={20} />
           </button>
         </div>
+        <button className="mobile-notice-link" onClick={() => { setMobileMenuOpen(false); setNoticeOpen(true); }}>Campus noticeboard <Icon name="arrow" size={15} /></button>
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '30px' }}>
           <a href="/" onClick={(e) => handleNav('/', e)}>Home</a>
           <a href="/programs" onClick={(e) => handleNav('/programs', e)}>All Programs</a>
@@ -209,12 +187,13 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenS
           <a href="/track" onClick={(e) => handleNav('/track', e)}>Track Application</a>
           <a href="/visit" onClick={(e) => handleNav('/visit', e)}>Plan Campus Visit</a>
           <a href="/placements" onClick={(e) => handleNav('/placements', e)}>Placements</a>
+          <a href="/jobs" onClick={(e) => handleNav('/jobs', e)}>Job-First Pathways</a>
           <a href="/campus" onClick={(e) => handleNav('/campus', e)}>Campus Life</a>
           <a href="/about" onClick={(e) => handleNav('/about', e)}>About Deekshaam</a>
           <a href="/contact" onClick={(e) => handleNav('/contact', e)}>Contact & Support</a>
-          <a href="/admin" onClick={(e) => handleNav('/admin', e)} style={{ color: 'var(--orange)', fontWeight: 700 }}>Admin Portal</a>
+          <a href="/admin/login" onClick={(e) => handleNav('/admin/login', e)}>Staff sign in</a>
         </nav>
-      </div>
+      </Dialog>
     </>
   );
 };

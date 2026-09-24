@@ -275,6 +275,31 @@ async function runTestSuite() {
     assert(loginRes.status === 200 && loginRes.data.data.token, 'Super admin authenticated and received JWT');
     const adminToken = loginRes.data.data.token;
 
+    // Public editorial content is visible only after an editor publishes it.
+    const editorialHeaders = { Authorization: `Bearer ${adminToken}` };
+    const storyPayload = { name: 'Integration Student', program: 'BCA', graduationYear: '2025', outcome: 'Software engineer', quote: 'A verified first-person story for the editorial workflow.', imageUrl: '', consentConfirmed: false, status: 'DRAFT' };
+    const storyCreated = await request('/api/cms/stories', { method: 'POST', headers: editorialHeaders, body: JSON.stringify(storyPayload) });
+    assert(storyCreated.status === 201, 'Content editor can save a student story as a draft');
+    const storyId = storyCreated.data.data.id;
+    const publicStoriesBefore = await request('/api/cms/stories');
+    assert(!publicStoriesBefore.data.data.some(item => item.id === storyId), 'Draft student story is hidden from the public site');
+    const storyWithoutConsent = await request(`/api/cms/stories/${storyId}`, { method: 'PUT', headers: editorialHeaders, body: JSON.stringify({ ...storyPayload, status: 'PUBLISHED' }) });
+    assert(storyWithoutConsent.status === 400, 'Student story cannot be published without consent confirmation');
+    const storyPublished = await request(`/api/cms/stories/${storyId}`, { method: 'PUT', headers: editorialHeaders, body: JSON.stringify({ ...storyPayload, consentConfirmed: true, status: 'PUBLISHED' }) });
+    const publicStoriesAfter = await request('/api/cms/stories');
+    assert(storyPublished.status === 200 && publicStoriesAfter.data.data.some(item => item.id === storyId), 'Consented story appears on Placements feed after publication');
+    const privateEditorial = await request('/api/cms/stories/admin');
+    assert(privateEditorial.status === 401, 'Editorial draft list requires staff authentication');
+
+    const eventPayload = { slug: `workflow-event-${Date.now()}`, title: 'Editorial workflow event', date: '20 Nov 2026', summary: 'A draft event for publication controls.', status: 'DRAFT' };
+    const eventCreated = await request('/api/cms/events', { method: 'POST', headers: editorialHeaders, body: JSON.stringify(eventPayload) });
+    const publicEvents = await request('/api/cms/events');
+    assert(eventCreated.status === 201 && !publicEvents.data.data.some(item => item.id === eventCreated.data.data.id), 'Draft event stays off public calendar');
+    const galleryPayload = { title: 'Editorial workflow photo', category: 'Campus', imageUrl: '/images/Deekshaam-Buisness-School-Img-1.png', order: 10, status: 'DRAFT' };
+    const galleryCreated = await request('/api/cms/gallery', { method: 'POST', headers: editorialHeaders, body: JSON.stringify(galleryPayload) });
+    const publicGallery = await request('/api/cms/gallery');
+    assert(galleryCreated.status === 201 && !publicGallery.data.data.some(item => item.id === galleryCreated.data.data.id), 'Draft gallery photo stays off public gallery');
+
     // Verify protected staff endpoints with token
     const adminApps = await request('/api/admissions/admin/applications', {
       headers: { Authorization: `Bearer ${adminToken}` },

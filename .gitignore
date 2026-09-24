@@ -6,3 +6,5 @@ __pycache__/
 Thumbs.db
 *.zip
 .commandcode/
+artifacts/
+*.log

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Icon } from '@deekshaam/ui';
 import { api } from '../services/api';
 import { SEOHead } from '../components/SEOHead';
+import { SiteImage } from '../components/SiteImage';
 
 interface EventsProps {
   onNavigate: (path: string) => void;
@@ -26,46 +27,31 @@ export const Events: React.FC<EventsProps> = ({ onNavigate }) => {
       <section className="page-hero compact">
         <div className="container">
           <span className="eyebrow">Campus Calendar</span>
-          <h1>Upcoming Events & Seminars</h1>
-          <p>Join our academic conferences, technical workshops, cultural celebrations, and industry speaker meets.</p>
+          <h1>What’s happening on campus.</h1>
+          <p>Discover workshops, conversations and moments that bring the Deekshaam community together.</p>
         </div>
       </section>
 
       <section className="section">
         <div className="container">
-          <div style={{ display: 'grid', gap: '24px' }}>
+          <div className="events-page-list">
             {events.map((evt, i) => (
               <article
-                key={i}
-                className="info-card"
-                style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: '32px', alignItems: 'center' }}
+                key={evt.id || i}
+                className="campus-event-card"
               >
-                <div
-                  style={{
-                    background: '#17191b',
-                    color: '#fff',
-                    borderRadius: '14px',
-                    padding: '24px',
-                    textAlign: 'center',
-                  }}
-                >
-                  <Icon name="calendar" size={28} color="var(--orange)" />
-                  <div style={{ fontSize: '18px', fontWeight: 800, marginTop: '8px' }}>{evt.date}</div>
-                  <small style={{ color: '#aaa', fontSize: '11px' }}>{evt.time || '10:00 AM'}</small>
-                </div>
+                {evt.coverImage ? <SiteImage src={evt.coverImage} alt={evt.title} loading="lazy" /> : <div className="event-date-block"><Icon name="calendar" size={25} /><strong>{evt.date}</strong><small>{evt.time || 'Time to be confirmed'}</small></div>}
 
-                <div>
-                  <span className="eyebrow">Academic Event</span>
-                  <h2 style={{ fontSize: '24px', margin: '6px 0 10px' }}>{evt.title}</h2>
-                  <p style={{ color: '#666', fontSize: '14px', lineHeight: '1.6' }}>{evt.description || evt.summary}</p>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#777', fontSize: '12px', marginTop: '12px' }}>
-                    <Icon name="map" size={16} />
-                    <span>{evt.location || 'DBS Campus Auditorium, Bangalore'}</span>
-                  </div>
+                <div className="event-page-copy">
+                  <span className="eyebrow">{evt.date}{evt.time ? ` · ${evt.time}` : ''}</span>
+                  <h2>{evt.title}</h2>
+                  <p>{evt.description || evt.summary}</p>
+                  {evt.location && <small><Icon name="map" size={15} /> {evt.location}</small>}
                 </div>
               </article>
             ))}
           </div>
+          {!events.length && <div className="story-empty"><div><h2>The next event is taking shape.</h2><p>Confirmed dates and details will appear here. You can contact us to ask about visiting campus in the meantime.</p></div><button className="btn btn-ghost" onClick={() => onNavigate('/contact')}>Contact us <Icon name="arrow" size={16} /></button></div>}
         </div>
       </section>
     </>

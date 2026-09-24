@@ -1,7 +1,10 @@
+import { Dialog } from '../components/Dialog';
+import { useAdminFeedback } from './AdminFeedback';
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 
 export const LeadsAdmin: React.FC = () => {
+  const notify = useAdminFeedback();
   const [leads, setLeads] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedLead, setSelectedLead] = useState<any | null>(null);
@@ -13,7 +16,7 @@ export const LeadsAdmin: React.FC = () => {
     api.getAdminLeads().then((data) => {
       setLeads(data || []);
       setLoading(false);
-    });
+    }).catch((err: Error) => { setLoading(false); notify(err.message || 'Unable to load this workspace. Please try again.'); });
   };
 
   useEffect(() => {
@@ -30,11 +33,11 @@ export const LeadsAdmin: React.FC = () => {
         assignedTo,
         notes,
       });
-      alert('Lead status updated successfully.');
+      notify('Lead status updated successfully.');
       setSelectedLead(null);
       fetchLeads();
     } catch (err: any) {
-      alert(`Update failed: ${err.message}`);
+      notify(`Update failed: ${err.message}`);
     }
   };
 
@@ -55,7 +58,7 @@ export const LeadsAdmin: React.FC = () => {
             No incoming leads recorded.
           </div>
         ) : (
-          <div className="table-responsive">
+          <div className="table-responsive" role="region" aria-label="Scrollable data table" tabIndex={0}>
             <table className="data-table">
               <thead>
                 <tr>
@@ -119,8 +122,8 @@ export const LeadsAdmin: React.FC = () => {
 
       {/* LEAD ACTION MODAL */}
       {selectedLead && (
-        <div className="search-overlay" onClick={() => setSelectedLead(null)}>
-          <div className="search-panel" style={{ maxWidth: '580px', padding: '28px' }} onClick={(e) => e.stopPropagation()}>
+        <Dialog open={true} onClose={() => setSelectedLead(null)} label="Update enquiry" className="workspace-editor">
+          <div className="workspace-editor-body">
             <h2 style={{ fontSize: '22px', margin: '0 0 16px' }}>Manage Lead: {selectedLead.name}</h2>
 
             <div style={{ background: '#faf9f7', padding: '16px', borderRadius: '10px', fontSize: '13px', marginBottom: '20px' }}>
@@ -135,7 +138,7 @@ export const LeadsAdmin: React.FC = () => {
             </div>
 
             <form onSubmit={handleUpdate} style={{ display: 'grid', gap: '14px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '12px' }}>
                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px', fontWeight: 700 }}>
                   Lifecycle Status
                   <select
@@ -183,7 +186,7 @@ export const LeadsAdmin: React.FC = () => {
               </div>
             </form>
           </div>
-        </div>
+        </Dialog>
       )}
     </div>
   );

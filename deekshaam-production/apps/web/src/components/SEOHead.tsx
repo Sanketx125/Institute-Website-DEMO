@@ -8,6 +8,8 @@ interface SEOHeadProps {
   description?: string;
   canonicalPath?: string;
   structuredData?: Record<string, any>;
+  /** When true, marks the page noindex,follow (thin/duplicate filter combos). */
+  noindex?: boolean;
 }
 
 export const SEOHead: React.FC<SEOHeadProps> = ({
@@ -15,6 +17,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
   description = 'Deekshaam Business School offers BBA, BCA, and B.Com undergraduate degrees in Bangalore with AICTE approval and Bengaluru North University affiliation.',
   canonicalPath = '',
   structuredData,
+  noindex = false,
 }) => {
   useEffect(() => {
     const fullTitle = `${title} | ${SITE_NAME}`;
@@ -33,6 +36,16 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
     };
 
     setMeta('name', 'description', description);
+
+    // Faceted-navigation guard: thin filter combinations stay out of the index
+    // but keep their links followed so equity still flows to detail pages.
+    let robots = document.head.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    if (!robots) {
+      robots = document.createElement('meta');
+      robots.setAttribute('name', 'robots');
+      document.head.appendChild(robots);
+    }
+    robots.setAttribute('content', noindex ? 'noindex,follow' : 'index,follow');
 
     // Open Graph
     setMeta('property', 'og:site_name', SITE_NAME);
@@ -89,7 +102,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
       document.head.appendChild(scriptTag);
     }
     scriptTag.textContent = JSON.stringify(structuredData || defaultSchema);
-  }, [title, description, canonicalPath, structuredData]);
+  }, [title, description, canonicalPath, structuredData, noindex]);
 
   return null;
 };

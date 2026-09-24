@@ -18,6 +18,7 @@ import searchRoutes from './search/routes';
 import seoRoutes from './seo/routes';
 import analyticsRoutes from './analytics/routes';
 import aiRoutes from './ai/routes';
+import top3Routes from './top3/routes';
 
 export const app = express();
 
@@ -100,6 +101,7 @@ app.use('/api/admissions', admissionsRoutes);
 app.use('/api/enquiries', enquiriesRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/top3', top3Routes);
 app.use('/api/seo', seoRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/ai', aiRoutes);

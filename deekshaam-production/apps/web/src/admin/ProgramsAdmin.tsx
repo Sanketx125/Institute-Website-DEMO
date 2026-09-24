@@ -1,17 +1,22 @@
+import { Dialog } from '../components/Dialog';
+import { useAdminFeedback } from './AdminFeedback';
 import React, { useState, useEffect } from 'react';
 import { Icon } from '@deekshaam/ui';
 import { api } from '../services/api';
 
 export const ProgramsAdmin: React.FC = () => {
+  const notify = useAdminFeedback();
   const [programs, setPrograms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchPrograms = () => {
     api.getPrograms().then((data) => {
       setPrograms(data || []);
       setLoading(false);
-    });
+    }).catch((err: Error) => { setLoading(false); notify(err.message || 'Unable to load this workspace. Please try again.'); });
   };
 
   useEffect(() => {
@@ -29,18 +34,20 @@ export const ProgramsAdmin: React.FC = () => {
       setEditingProgram(null);
       fetchPrograms();
     } catch (err: any) {
-      alert(`Operation failed: ${err.message}`);
+      notify(`Operation failed: ${err.message}`);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to remove this program?')) return;
+    setDeleting(true);
     try {
       await api.deleteProgram(id);
+      setDeleteId(null);
       fetchPrograms();
+      notify('Program removed.');
     } catch (err: any) {
-      alert(`Delete failed: ${err.message}`);
-    }
+      notify(`Delete failed: ${err.message}`);
+    } finally { setDeleting(false); }
   };
 
   return (
@@ -81,7 +88,7 @@ export const ProgramsAdmin: React.FC = () => {
         {loading ? (
           <div>Loading programs...</div>
         ) : (
-          <div className="table-responsive">
+          <div className="table-responsive" role="region" aria-label="Scrollable data table" tabIndex={0}>
             <table className="data-table">
               <thead>
                 <tr>
@@ -110,7 +117,7 @@ export const ProgramsAdmin: React.FC = () => {
                       <button
                         className="btn btn-ghost small"
                         style={{ color: '#c92a2a' }}
-                        onClick={() => handleDelete(p.id)}
+                        onClick={() => setDeleteId(p.id)}
                       >
                         Delete
                       </button>
@@ -125,14 +132,14 @@ export const ProgramsAdmin: React.FC = () => {
 
       {/* EDIT / CREATE MODAL */}
       {editingProgram && (
-        <div className="search-overlay" onClick={() => setEditingProgram(null)}>
-          <div className="search-panel" style={{ maxWidth: '640px', padding: '28px' }} onClick={(e) => e.stopPropagation()}>
+        <Dialog open={true} onClose={() => setEditingProgram(null)} label="Edit program" className="workspace-editor">
+          <div className="workspace-editor-body">
             <h2 style={{ fontSize: '22px', margin: '0 0 16px' }}>
               {editingProgram.isNew ? 'Create New Program' : `Edit ${editingProgram.code}`}
             </h2>
 
             <form onSubmit={handleSave} style={{ display: 'grid', gap: '14px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '12px' }}>
                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px', fontWeight: 700 }}>
                   Program Code (e.g. BCA)
                   <input
@@ -199,8 +206,9 @@ export const ProgramsAdmin: React.FC = () => {
               </div>
             </form>
           </div>
-        </div>
+        </Dialog>
       )}
+      <Dialog open={!!deleteId} onClose={() => { if (!deleting) setDeleteId(null); }} label="Remove program" className="notification-dialog"><h2>Remove this program?</h2><p>This removes the program from the public catalog. Existing applications remain in the admissions workspace.</p><div className="media-actions"><button className="btn btn-ghost" disabled={deleting} onClick={() => setDeleteId(null)}>Keep program</button><button className="btn btn-primary" disabled={deleting} onClick={() => deleteId && handleDelete(deleteId)}>{deleting ? 'Removing...' : 'Remove program'}</button></div></Dialog>
     </div>
   );
 };

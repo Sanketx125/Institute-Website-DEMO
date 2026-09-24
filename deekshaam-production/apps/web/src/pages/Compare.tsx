@@ -32,7 +32,7 @@ export const Compare: React.FC<CompareProps> = ({ onNavigate }) => {
       </section>
 
       <section className="section">
-        <div className="container" style={{ overflowX: 'auto' }}>
+        <div className="container comparison-scroll" role="region" aria-label="Program comparison table, scroll horizontally for all programs" tabIndex={0} style={{ overflowX: 'auto' }}>
           <table
             style={{
               width: '100%',
@@ -45,7 +45,7 @@ export const Compare: React.FC<CompareProps> = ({ onNavigate }) => {
             }}
           >
             <thead>
-              <tr style={{ background: '#17191b', color: '#fff' }}>
+              <tr style={{ background: 'var(--navy-900)', color: '#fff' }}>
                 <th style={{ padding: '20px', width: '22%', textAlign: 'left' }}>Parameter</th>
                 {programs.map((p) => (
                   <th key={p.slug} style={{ padding: '20px', width: '26%', textAlign: 'left' }}>

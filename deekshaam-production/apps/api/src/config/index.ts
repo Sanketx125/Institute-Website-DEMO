@@ -21,13 +21,8 @@ function requiredSecret(name: string): string {
 export function requiredPassword(envName: string, label: string): string {
   const value = process.env[envName];
   if (value && value.trim()) return value.trim();
-  if (isProduction) {
-    console.error(`[CONFIG] FATAL: environment variable ${envName} is required in production to bootstrap the ${label} account.`);
-    process.exit(1);
-  }
-  const generated = crypto.randomBytes(12).toString('base64url');
-  console.warn(`[CONFIG] ${envName} not set. One-time generated ${label} password (dev only): ${generated}`);
-  return generated;
+  console.error(`[CONFIG] FATAL: ${envName} is required to bootstrap the ${label} account. Set it in the API environment before starting the server.`);
+  process.exit(1);
 }
 
 if (isProduction && (!process.env.CLIENT_ORIGIN || !process.env.CLIENT_ORIGIN.trim())) {

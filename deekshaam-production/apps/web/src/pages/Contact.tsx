@@ -44,11 +44,7 @@ export const Contact: React.FC<ContactProps> = ({ onNavigate }) => {
 
   return (
     <>
-      <SEOHead
-        title="Contact & Admissions Enquiry"
-        description="Get in touch with Deekshaam Business School admissions office. Request a callback or send an enquiry."
-        canonicalPath="/contact"
-      />
+      <SEOHead canonicalPath="/contact" />
 
       <section className="page-hero contact-hero">
         <div className="container contact-hero-grid"><div>

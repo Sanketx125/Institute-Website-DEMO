@@ -232,11 +232,7 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
 
   return (
     <>
-      <SEOHead
-        title="Online Application Portal"
-        description="Submit your undergraduate application online for BBA, BCA, or B.Com at Deekshaam Business School."
-        canonicalPath="/apply"
-      />
+      <SEOHead canonicalPath="/apply" />
 
       {toastMessage && (
         <div

@@ -17,11 +17,7 @@ export const News: React.FC<NewsProps> = ({ onNavigate }) => {
 
   return (
     <>
-      <SEOHead
-        title="News, Articles & Career Insights"
-        description="Latest institutional news, academic updates, and career advice from Deekshaam Business School."
-        canonicalPath="/news"
-      />
+      <SEOHead canonicalPath="/news" />
 
       <section className="page-hero compact">
         <div className="container">

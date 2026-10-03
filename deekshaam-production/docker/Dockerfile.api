@@ -8,11 +8,14 @@ COPY package.json tsconfig.json .env.example ./
 COPY packages/ ./packages/
 COPY database/ ./database/
 COPY apps/api/ ./apps/api/
+COPY apps/web/ ./apps/web/
 
 # Install dependencies and build
 RUN npm install
 RUN npm run build:packages
 RUN npm run build:api
+# The API server-renders public HTML (SEO) from the built web template
+RUN npm run build:web
 
 # Production Runner
 FROM node:20-alpine AS runner
@@ -25,6 +28,8 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
+COPY --from=builder /app/apps/web/dist ./apps/web/dist
+ENV WEB_DIST_DIR=/app/apps/web/dist
 COPY --from=builder /app/database ./database
 
 # Create storage directories

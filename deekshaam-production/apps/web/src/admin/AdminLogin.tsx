@@ -15,7 +15,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onNaviga
     catch (err: any) { setError(err.message || 'Unable to sign in. Please try again.'); }
     finally { setLoading(false); }
   };
-  return <><SEOHead title="Staff sign in" /><main className="login-page">
+  return <><SEOHead title="Staff sign in" noindex /><main className="login-page">
     <div className="login-story"><a href="/" onClick={e => { e.preventDefault(); onNavigate('/'); }} className="login-brand"><img src="/favicon.svg" alt="" /><span>Deekshaam<small>BUSINESS SCHOOL</small></span></a><div><span className="eyebrow light">One campus. A connected team.</span><h1>Good work starts<br />with the right access.</h1><p>Manage the website, support applicants and keep campus operations moving from one shared workspace.</p></div><div className="login-student"><strong>Applying to Deekshaam?</strong><p>You do not need a staff account. Use your application reference and registered email to track progress.</p><button onClick={() => onNavigate('/track')}>Track your application <Icon name="arrow" size={16} /></button></div></div>
     <div className="login-content"><div className="login-form-wrap"><span className="eyebrow">Staff workspace</span><h2>Welcome back.</h2><p>Sign in with your staff email. Your account determines which tools you can access.</p>
       {error && <div className="inline-feedback error" role="alert">{error}</div>}

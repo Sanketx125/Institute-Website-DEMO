@@ -37,11 +37,7 @@ export const Admissions: React.FC<AdmissionsProps> = ({ onNavigate }) => {
 
   return (
     <>
-      <SEOHead
-        title="Admissions 2026-27 | Eligibility & Online Application"
-        description="Learn about the undergraduate admissions process, document requirements, and key deadlines at Deekshaam Business School."
-        canonicalPath="/admissions"
-      />
+      <SEOHead canonicalPath="/admissions" />
 
       <section className="page-hero">
         <div className="container page-hero-grid">

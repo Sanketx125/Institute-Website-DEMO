@@ -3,6 +3,7 @@ import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { SearchModal } from './components/SearchModal';
 import { AIChatbot } from './components/AIChatbot';
+import { SEOHead } from './components/SEOHead';
 
 // Public Pages
 import { Home } from './pages/Home';
@@ -22,6 +23,8 @@ import { Placements } from './pages/Placements';
 import { Campus } from './pages/Campus';
 import { News } from './pages/News';
 import { NewsDetail } from './pages/NewsDetail';
+import { EventDetail } from './pages/EventDetail';
+import { VideoDetail } from './pages/VideoDetail';
 import { Events } from './pages/Events';
 import { Gallery } from './pages/Gallery';
 
@@ -172,6 +175,14 @@ export const App: React.FC = () => {
       return <NewsDetail slug={slug} onNavigate={navigate} />;
     }
 
+    if (currentPath.startsWith('/events/') && currentPath.split('/')[2]) {
+      return <EventDetail slug={currentPath.split('/')[2]} onNavigate={navigate} />;
+    }
+
+    if (currentPath.startsWith('/videos/') && currentPath.split('/')[2]) {
+      return <VideoDetail id={currentPath.split('/')[2]} onNavigate={navigate} />;
+    }
+
     // Static Public Routes
     switch (currentPath) {
       case '/':
@@ -209,6 +220,7 @@ export const App: React.FC = () => {
       default:
         return (
           <div className="container" style={{ padding: '100px 0', textAlign: 'center' }}>
+            <SEOHead title="Page not found" noindex />
             <h1 style={{ fontSize: '48px', color: 'var(--orange)', marginBottom: '8px' }}>404</h1>
             <h2>Page Not Found</h2>
             <p style={{ color: '#777', margin: '12px 0 24px' }}>

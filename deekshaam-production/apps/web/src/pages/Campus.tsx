@@ -33,11 +33,7 @@ export const Campus: React.FC<CampusProps> = ({ onNavigate }) => {
 
   return (
     <>
-      <SEOHead
-        title="Campus Infrastructure & Hostel Facilities"
-        description="Explore the campus environment, computer labs, residential hostels, and student amenities at Deekshaam Business School."
-        canonicalPath="/campus"
-      />
+      <SEOHead canonicalPath="/campus" />
 
       <section className="page-hero campus-hero">
         <div className="container campus-hero-grid"><div>
@@ -52,7 +48,7 @@ export const Campus: React.FC<CampusProps> = ({ onNavigate }) => {
               View all photos
             </button>
           </div>
-        </div><div className="campus-hero-image"><SiteImage src={settings?.campusImage || 'https://deekshaedu.in/wp-content/uploads/2025/03/Deekshaam-Buisness-School-Img-1.png'} alt="Classroom and student moments at Deekshaam Business School" /><span>Devanahalli · Bengaluru</span></div></div>
+        </div><div className="campus-hero-image"><SiteImage src={settings?.campusImage || '/images/Deekshaam-Buisness-School-Img-1.webp'} alt="Classroom and student moments at Deekshaam Business School" /><span>Devanahalli · Bengaluru</span></div></div>
       </section>
 
       {/* FACILITIES GRID */}

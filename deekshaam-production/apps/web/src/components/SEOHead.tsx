@@ -1,28 +1,28 @@
 import React, { useEffect } from 'react';
+import { PAGE_META, SITE_NAME, DEFAULT_SHARE_IMAGE } from '@deekshaam/types';
 
-const SITE_NAME = 'Deekshaam Business School';
-const DEFAULT_OG_IMAGE = '/logo.svg';
+// Path the server rendered; its page-level JSON-LD stays valid until the user navigates away.
+const SSR_PATH = window.location.pathname;
 
 interface SEOHeadProps {
-  title: string;
+  /** Defaults to the shared PAGE_META entry for canonicalPath (same text the server renders). */
+  title?: string;
   description?: string;
   canonicalPath?: string;
-  structuredData?: Record<string, any>;
-  /** When true, marks the page noindex,follow (thin/duplicate filter combos). */
+  image?: string;
+  /** When true, marks the page noindex,follow (thin/duplicate filter combos, transactional pages). */
   noindex?: boolean;
 }
 
-export const SEOHead: React.FC<SEOHeadProps> = ({
-  title,
-  description = 'Deekshaam Business School offers BBA, BCA, and B.Com undergraduate degrees in Bangalore with AICTE approval and Bengaluru North University affiliation.',
-  canonicalPath = '',
-  structuredData,
-  noindex = false,
-}) => {
+export const SEOHead: React.FC<SEOHeadProps> = ({ canonicalPath = '', image, ...props }) => {
+  const meta = PAGE_META[canonicalPath || '/'];
+  const title = props.title || meta?.title || SITE_NAME;
+  const description = props.description || meta?.description || PAGE_META['/'].description;
+  const noindex = props.noindex ?? meta?.noindex ?? false;
   useEffect(() => {
     const fullTitle = `${title} | ${SITE_NAME}`;
-    const canonicalUrl = `${window.location.origin}${canonicalPath}`;
-    const ogImageUrl = `${window.location.origin}${DEFAULT_OG_IMAGE}`;
+    const canonicalUrl = `${window.location.origin}${canonicalPath || '/'}`;
+    const ogImageUrl = new URL(image || DEFAULT_SHARE_IMAGE, window.location.origin).href;
     document.title = fullTitle;
 
     const setMeta = (attr: 'name' | 'property', key: string, content: string) => {
@@ -45,7 +45,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
       robots.setAttribute('name', 'robots');
       document.head.appendChild(robots);
     }
-    robots.setAttribute('content', noindex ? 'noindex,follow' : 'index,follow');
+    robots.setAttribute('content', noindex ? 'noindex,follow' : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1');
 
     // Open Graph
     setMeta('property', 'og:site_name', SITE_NAME);
@@ -70,39 +70,10 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
     }
     canonical.setAttribute('href', canonicalUrl);
 
-    // JSON-LD Structured Data
-    const defaultSchema = {
-      '@context': 'https://schema.org',
-      '@type': 'EducationalOrganization',
-      name: 'Deekshaam Business School',
-      alternateName: 'DBS',
-      url: window.location.origin,
-      logo: ogImageUrl,
-      address: {
-        '@type': 'PostalAddress',
-        streetAddress: 'Venkatpura, Kundana, Devanhalli Taluk',
-        addressLocality: 'Bangalore',
-        postalCode: '562110',
-        addressRegion: 'Karnataka',
-        addressCountry: 'India',
-      },
-      contactPoint: {
-        '@type': 'ContactPoint',
-        telephone: '+91-8971435297',
-        contactType: 'Admissions',
-        email: 'admission@deekshaedu.in',
-      },
-    };
-
-    let scriptTag = document.querySelector('script#structured-data');
-    if (!scriptTag) {
-      scriptTag = document.createElement('script');
-      scriptTag.id = 'structured-data';
-      scriptTag.setAttribute('type', 'application/ld+json');
-      document.head.appendChild(scriptTag);
-    }
-    scriptTag.textContent = JSON.stringify(structuredData || defaultSchema);
-  }, [title, description, canonicalPath, structuredData, noindex]);
+    // JSON-LD is server-rendered only (apps/api/src/seo/render.ts): crawlers load each URL
+    // fresh, so a client copy would only drift. Drop page blocks once the user navigates away.
+    if (canonicalPath !== SSR_PATH) document.querySelectorAll('script[data-ssr]').forEach((el) => el.remove());
+  }, [title, description, canonicalPath, image, noindex]);
 
   return null;
 };

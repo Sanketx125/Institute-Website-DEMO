@@ -409,3 +409,4 @@ export interface ApiResponse<T = any> {
     pageSize?: number;
   };
 }
+export * from './seo';

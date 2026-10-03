@@ -259,6 +259,26 @@ async function runTestSuite() {
 
     const robots = await request('/robots.txt');
     assert(robots.status === 200 && Boolean(robots.text && robots.text.includes('Disallow: /admin/')), 'Production robots.txt generated');
+    assert(!sitemap.text.includes('/apply<') && !sitemap.text.includes('/track<'), 'Sitemap excludes transactional /apply and /track');
+
+    // Server-rendered public HTML (needs apps/web/dist; skipped for API-only builds)
+    if (fs.existsSync(require('path').join(__dirname, '../apps/web/dist/index.html'))) {
+      const bca = await request('/programs/bca');
+      assert(bca.status === 200 && bca.text.includes('<link rel="canonical" href="http://localhost:3000/programs/bca"') && bca.text.includes('<h1>BCA - Bachelor of Computer Applications</h1>') && bca.text.includes('"@type":"Course"'), 'Program page server-renders canonical, H1 and Course JSON-LD');
+      const missing = await request('/programs/does-not-exist');
+      assert(missing.status === 404 && missing.text.includes('noindex'), 'Unknown URL returns real 404 with noindex');
+      const slash = await fetch(`${BASE_URL}/programs/`, { redirect: 'manual' });
+      assert(slash.status === 301 && slash.headers.get('location') === '/programs', 'Trailing slash 301s to canonical URL');
+      const programs = await request('/programs');
+      assert(programs.text.includes('"@type":"ItemList"') && programs.text.includes('"@type":"Course"') && programs.text.includes('<a href="/programs/bca">'), 'Programs page renders Course list ItemList and crawlable links');
+      const home = await request('/');
+      assert(home.text.includes('"@type":"CollegeOrUniversity"') && home.text.includes('"postalCode":"562110"') && home.text.includes('"@type":"WebSite"') && home.text.includes('og:image" content="http://localhost:3000/images/share-default.jpg"'), 'Home renders organization entity, WebSite and raster share image');
+      assert(/Content-Security-Policy/i.test([...(await fetch(`${BASE_URL}/`)).headers.keys()].join(' ')), 'Public HTML ships a Content-Security-Policy');
+      const job = await request('/jobs/hdfc-bank-relationship-executive');
+      assert(job.text.includes('"@type":"JobPosting"') && job.text.includes('"datePosted":"2026-09-24"') && job.text.includes('"minValue":20000'), 'Job page renders JobPosting with genuine datePosted and salary');
+      const apply = await request('/apply');
+      assert(apply.status === 200 && apply.text.includes('content="noindex,follow"'), 'Apply page is noindex');
+    }
 
     // 8. AI Assistant (Deeksha Guide)
     const aiRes = await request('/api/ai/chat', {
@@ -295,6 +315,25 @@ async function runTestSuite() {
     const eventCreated = await request('/api/cms/events', { method: 'POST', headers: editorialHeaders, body: JSON.stringify(eventPayload) });
     const publicEvents = await request('/api/cms/events');
     assert(eventCreated.status === 201 && !publicEvents.data.data.some(item => item.id === eventCreated.data.data.id), 'Draft event stays off public calendar');
+
+    // SEO lifecycle: draft 404 -> publish 200 + Event schema + fresh lastmod -> archive 410
+    if (fs.existsSync(require('path').join(__dirname, '../apps/web/dist/index.html'))) {
+      const eventPath = `/events/${eventPayload.slug}`;
+      assert((await request(eventPath)).status === 404, 'Draft event URL is a 404 for crawlers');
+      const eventId = eventCreated.data.data.id;
+      await request(`/api/cms/events/${eventId}`, { method: 'PUT', headers: editorialHeaders, body: JSON.stringify({ ...eventPayload, time: '10:00 AM - 01:00 PM', status: 'PUBLISHED' }) });
+      const eventPage = await request(eventPath);
+      assert(eventPage.status === 200 && eventPage.text.includes('"@type":"Event"') && eventPage.text.includes('"startDate":"2026-11-20T10:00:00+05:30"'), 'Published event server-renders Event JSON-LD with IST start time');
+      const eventsSitemap = await request('/sitemap-events.xml');
+      assert(new RegExp(`${eventPath}</loc><lastmod>\\d{4}-`).test(eventsSitemap.text), 'CMS publish gives the event URL a truthful lastmod in its sitemap');
+      await request(`/api/cms/events/${eventId}`, { method: 'PUT', headers: editorialHeaders, body: JSON.stringify({ ...eventPayload, status: 'ARCHIVED' }) });
+      assert((await request(eventPath)).status === 410, 'Archived event URL returns 410 Gone');
+
+      const videoSave = await request('/api/cms/videos', { method: 'PUT', headers: editorialHeaders, body: JSON.stringify([{ id: 'v1', youtubeId: 'dQw4w9WgXcQ', title: 'Campus tour', category: 'Campus life', duration: '03:20', description: 'A walk through campus.', uploadDate: '2026-09-01' }]) });
+      const videoPage = await request('/videos/dQw4w9WgXcQ');
+      assert(videoSave.status === 200 && videoPage.status === 200 && videoPage.text.includes('"@type":"VideoObject"') && videoPage.text.includes('"duration":"PT3M20S"'), 'Video watch page server-renders VideoObject');
+      await request('/api/cms/videos', { method: 'PUT', headers: editorialHeaders, body: '[]' });
+    }
     const galleryPayload = { title: 'Editorial workflow photo', category: 'Campus', imageUrl: '/images/Deekshaam-Buisness-School-Img-1.png', order: 10, status: 'DRAFT' };
     const galleryCreated = await request('/api/cms/gallery', { method: 'POST', headers: editorialHeaders, body: JSON.stringify(galleryPayload) });
     const publicGallery = await request('/api/cms/gallery');

@@ -17,6 +17,8 @@ export const jobsSeed = [
     tags: ['CRM', 'Cloud', 'Consulting', 'Freshers'],
     summary:
       'Entry-level CRM consulting role with Salesforce partner network. Earn while you learn: employment starts first, BCA degree runs alongside.',
+    // First published on the site with the job-first launch (commit 1d23273); required by Google for Jobs.
+    datePosted: '2026-09-24',
     status: 'PUBLISHED',
     rankScore: 92,
     isSponsored: false,
@@ -33,6 +35,8 @@ export const jobsSeed = [
     tags: ['IT Support', 'Networking', 'Freshers', 'Service Desk'],
     summary:
       'Service desk and infrastructure support role at HCLTech Bangalore. Job-first pathway with BCA degree enrollment in parallel.',
+    // First published on the site with the job-first launch (commit 1d23273); required by Google for Jobs.
+    datePosted: '2026-09-24',
     status: 'PUBLISHED',
     rankScore: 88,
     isSponsored: false,
@@ -49,6 +53,8 @@ export const jobsSeed = [
     tags: ['Banking', 'Sales', 'Customer Relations', 'Freshers'],
     summary:
       'Branch banking customer relationship role at HDFC Bank. Join through the HR tie-up, complete B.Com while employed.',
+    // First published on the site with the job-first launch (commit 1d23273); required by Google for Jobs.
+    datePosted: '2026-09-24',
     status: 'PUBLISHED',
     rankScore: 85,
     isSponsored: false,
@@ -65,6 +71,8 @@ export const jobsSeed = [
     tags: ['FMCG', 'Sales', 'Distribution', 'Freshers'],
     summary:
       'FMCG distribution and sales trainee pathway at ITC. Job-first entry with BBA degree alongside.',
+    // First published on the site with the job-first launch (commit 1d23273); required by Google for Jobs.
+    datePosted: '2026-09-24',
     status: 'PUBLISHED',
     rankScore: 80,
     isSponsored: false,
@@ -81,6 +89,8 @@ export const jobsSeed = [
     tags: ['Operations', 'Supply Chain', 'Freshers'],
     summary:
       'Operations and supply chain support role at Johnson Controls. Employment first, BBA degree in parallel.',
+    // First published on the site with the job-first launch (commit 1d23273); required by Google for Jobs.
+    datePosted: '2026-09-24',
     status: 'PUBLISHED',
     rankScore: 78,
     isSponsored: false,
@@ -97,6 +107,8 @@ export const jobsSeed = [
     tags: ['Quality', 'Food Industry', 'Freshers'],
     summary:
       'Quality assurance support role at MTR Foods. Job-first pathway with B.Com degree alongside.',
+    // First published on the site with the job-first launch (commit 1d23273); required by Google for Jobs.
+    datePosted: '2026-09-24',
     status: 'PUBLISHED',
     rankScore: 74,
     isSponsored: false,

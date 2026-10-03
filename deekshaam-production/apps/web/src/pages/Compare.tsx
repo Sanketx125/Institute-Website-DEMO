@@ -17,11 +17,7 @@ export const Compare: React.FC<CompareProps> = ({ onNavigate }) => {
 
   return (
     <>
-      <SEOHead
-        title="Compare Undergraduate Degree Programs (BBA vs BCA vs B.Com)"
-        description="Side-by-side comparison of BBA, BCA, and B.Com degree programs at Deekshaam Business School."
-        canonicalPath="/compare"
-      />
+      <SEOHead canonicalPath="/compare" />
 
       <section className="page-hero compact">
         <div className="container">

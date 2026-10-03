@@ -1,115 +1,78 @@
 import { Request, Response } from 'express';
-import { memoryDb } from '../database/client';
 import { config } from '../config';
+import { indexablePaths, resolvePage, abs } from './render';
+import { lastModified, INDEXNOW_KEY } from './changes';
+import { memoryDb } from '../database/client';
 
-const staticUrls = [
-  '',
-  '/about',
-  '/programs',
-  '/admissions',
-  '/placements',
-  '/campus',
-  '/news',
-  '/events',
-  '/gallery',
-  '/contact',
-  '/apply',
-  '/track',
-  '/visit',
-  '/compare',
-  '/certifications',
-  '/jobs',
-];
+const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
-function generateSitemapXml(urls: { path: string; priority: string }[]) {
-  const baseUrl = config.clientOrigin;
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls
-  .map(
-    (u) => `  <url>
-    <loc>${baseUrl}${u.path}</loc>
-    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>${u.priority}</priority>
-  </url>`
-  )
-  .join('\n')}
-</urlset>`;
+// Truthful lastmod only: a tracked CMS edit, else the item's own publish date, else none.
+// (Google ignores changefreq/priority and distrusts a lastmod that is always "today".)
+function publishDate(path: string): string | undefined {
+  const [, kind, slug] = path.split('/');
+  const row = kind === 'news' ? memoryDb.news.find((n: any) => n.slug === slug) : kind === 'jobs' ? memoryDb.jobs.find((j: any) => j.slug === slug) : null;
+  const d = new Date(row?.date || row?.datePosted || '');
+  return isNaN(+d) ? undefined : d.toISOString();
 }
 
+function sendUrlset(res: Response, paths: string[]) {
+  const urls = paths.map((p) => {
+    const lastmod = lastModified(p) || publishDate(p);
+    const image = resolvePage(p).image;
+    return `  <url><loc>${esc(abs(p))}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ''}${image ? `<image:image><image:loc>${esc(abs(image))}</image:loc></image:image>` : ''}</url>`;
+  });
+  res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${urls.join('\n')}
+</urlset>`);
+}
+
+const SECTIONS: Record<string, RegExp> = {
+  pages: /^\/[^/]*$/,
+  programs: /^\/programs\/./,
+  jobs: /^\/jobs\/./,
+  news: /^\/news\/./,
+  events: /^\/events\/./,
+  videos: /^\/videos\/./,
+};
+const section = (name: string) => indexablePaths().filter((p) => SECTIONS[name].test(p));
+
 export function getSitemap(_req: Request, res: Response) {
-  const programUrls = memoryDb.programs.map((p) => `/programs/${p.slug}`);
-  const newsUrls = memoryDb.news.map((n) => `/news/${n.slug}`);
-  const jobUrls = memoryDb.jobs.map((j) => `/jobs/${j.slug}`);
-  const certifications = memoryDb.certifications || [{ slug: '' }, { slug: '' }, { slug: '' }]; // Mock fallback if certifications missing in db
-
-  const allUrls = [
-    ...staticUrls.map(u => ({ path: u, priority: u === '' ? '1.0' : u === '/programs' || u === '/jobs' ? '0.9' : '0.8' })),
-    ...programUrls.map(u => ({ path: u, priority: '0.9' })),
-    ...newsUrls.map(u => ({ path: u, priority: '0.8' })),
-    ...jobUrls.map(u => ({ path: u, priority: '0.8' }))
-  ];
-
-  res.header('Content-Type', 'application/xml');
-  res.send(generateSitemapXml(allUrls));
+  sendUrlset(res, indexablePaths());
 }
 
 export function getSitemapIndex(_req: Request, res: Response) {
-  const baseUrl = config.clientOrigin;
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <sitemap>
-    <loc>${baseUrl}/sitemap-pages.xml</loc>
-  </sitemap>
-  <sitemap>
-    <loc>${baseUrl}/sitemap-programs.xml</loc>
-  </sitemap>
-  <sitemap>
-    <loc>${baseUrl}/sitemap-jobs.xml</loc>
-  </sitemap>
-  <sitemap>
-    <loc>${baseUrl}/sitemap-news.xml</loc>
-  </sitemap>
+${Object.keys(SECTIONS).filter((n) => section(n).length).map((n) => `  <sitemap><loc>${abs(`/sitemap-${n}.xml`)}</loc></sitemap>`).join('\n')}
 </sitemapindex>`;
-  res.header('Content-Type', 'application/xml');
-  res.send(xml);
+  res.type('application/xml').send(xml);
 }
 
-export function getSitemapPages(_req: Request, res: Response) {
-  const urls = staticUrls.map(u => ({ path: u, priority: u === '' ? '1.0' : u === '/programs' || u === '/jobs' ? '0.9' : '0.8' }));
-  res.header('Content-Type', 'application/xml');
-  res.send(generateSitemapXml(urls));
+export function getSitemapSection(req: Request, res: Response) {
+  const name = req.params.section;
+  if (!SECTIONS[name]) return res.status(404).type('text/plain').send('Not found');
+  sendUrlset(res, section(name));
 }
 
-export function getSitemapPrograms(_req: Request, res: Response) {
-  const urls = memoryDb.programs.map((p) => ({ path: `/programs/${p.slug}`, priority: '0.9' }));
-  res.header('Content-Type', 'application/xml');
-  res.send(generateSitemapXml(urls));
-}
-
-export function getSitemapJobs(_req: Request, res: Response) {
-  const urls = memoryDb.jobs.map((j) => ({ path: `/jobs/${j.slug}`, priority: '0.8' }));
-  res.header('Content-Type', 'application/xml');
-  res.send(generateSitemapXml(urls));
-}
-
-export function getSitemapNews(_req: Request, res: Response) {
-  const urls = memoryDb.news.map((n) => ({ path: `/news/${n.slug}`, priority: '0.8' }));
-  res.header('Content-Type', 'application/xml');
-  res.send(generateSitemapXml(urls));
+export function getIndexNowKey(req: Request, res: Response, next: () => void) {
+  if (!INDEXNOW_KEY || req.params.key !== INDEXNOW_KEY) return next();
+  res.type('text/plain').send(INDEXNOW_KEY);
 }
 
 export function getRobotsTxt(_req: Request, res: Response) {
-  const baseUrl = config.clientOrigin;
+  // "*" admits search/AI crawlers (Googlebot, Bingbot, OAI-SearchBot for ChatGPT Search,
+  // PerplexityBot). /apply and /track are NOT disallowed: crawlers must fetch them to see noindex.
+  // Model-training opt-out is separate from search visibility and controlled by env.
+  const training = (process.env.BLOCK_AI_TRAINING || '').toLowerCase() === 'true'
+    ? ['GPTBot', 'Google-Extended', 'CCBot', 'ClaudeBot', 'Applebot-Extended'].map((b) => `User-agent: ${b}\nDisallow: /\n`).join('\n') + '\n'
+    : '';
   const content = `User-agent: *
 Allow: /
 Disallow: /admin/
 Disallow: /api/
 
-Sitemap: ${baseUrl}/sitemap_index.xml
+${training}Sitemap: ${config.clientOrigin}/sitemap_index.xml
 `;
-
-  res.header('Content-Type', 'text/plain');
-  res.send(content);
+  res.type('text/plain').send(content);
 }

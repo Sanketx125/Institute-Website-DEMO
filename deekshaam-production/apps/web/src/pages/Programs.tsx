@@ -19,11 +19,7 @@ export const Programs: React.FC<ProgramsProps> = ({ onNavigate }) => {
 
   return (
     <>
-      <SEOHead
-        title="Undergraduate Degree Programs (BBA, BCA, B.Com)"
-        description="Explore 3-year undergraduate degree programs in Management, Computer Applications, and Commerce at Deekshaam Business School, Bangalore."
-        canonicalPath="/programs"
-      />
+      <SEOHead canonicalPath="/programs" />
 
       <section className="page-hero compact">
         <div className="container">

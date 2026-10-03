@@ -21,11 +21,7 @@ export const Placements: React.FC<PlacementsProps> = ({ onNavigate }) => {
 
   return (
     <>
-      <SEOHead
-        title="Placements & Career Development"
-        description="Explore placement partners, corporate internship tracks, and career assistance at Deekshaam Business School."
-        canonicalPath="/placements"
-      />
+      <SEOHead canonicalPath="/placements" />
 
       <section className="page-hero"><div className="container page-hero-grid"><div><span className="eyebrow">Career development</span><h1>Build a career.<br />Start with direction.</h1><p>Connect your degree to the world of work through career guidance, practical projects and conversations with industry. Our job-before-academy pathway helps eligible students explore conditional opportunities before classes begin.</p><div className="hero-actions"><button className="btn btn-primary" onClick={() => onNavigate('/contact')}>Talk to a career counselor <Icon name="arrow" size={16} /></button><button className="btn btn-ghost" onClick={() => onNavigate('/programs')}>Explore programs</button></div></div><aside className="career-support-card"><span className="eyebrow light">From potential to preparation</span><h2>A clearer path forward.</h2>{[['01', 'Know your strengths', 'Build an aptitude profile and explore the roles that interest you.'], ['02', 'Meet industry', 'Prepare for interviews and connect with corporate and HR partners.'], ['03', 'Understand your offer', 'Review eligibility, selection criteria and employer conditions with your counselor.']].map(([number, title, description]) => <div key={number}><span>{number}</span><div><h3>{title}</h3><p>{description}</p></div></div>)}<p className="career-support-note">Selection and conditional offers depend on eligibility, interviews and employer terms.</p></aside></div></section>
 

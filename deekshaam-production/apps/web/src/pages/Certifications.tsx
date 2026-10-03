@@ -20,11 +20,7 @@ export const Certifications: React.FC<CertificationsProps> = ({ onNavigate }) =>
 
   return (
     <>
-      <SEOHead
-        title="Professional Certifications (AI, Cloud, Data, Marketing, Finance)"
-        description="Explore modular 6-11 month professional certifications at Deekshaam Business School."
-        canonicalPath="/certifications"
-      />
+      <SEOHead canonicalPath="/certifications" />
 
       <section className="page-hero">
         <div className="container page-hero-grid">

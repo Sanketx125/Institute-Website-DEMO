@@ -21,11 +21,7 @@ export const About: React.FC<AboutProps> = ({ onNavigate }) => {
 
   return (
     <>
-      <SEOHead
-        title="About Deekshaam Business School | Leadership & Vision"
-        description="Learn about the history, institutional mission, leadership, and governance of Deekshaam Business School."
-        canonicalPath="/about"
-      />
+      <SEOHead canonicalPath="/about" />
 
       <section className="page-hero">
         <div className="container page-hero-grid">
@@ -37,7 +33,7 @@ export const About: React.FC<AboutProps> = ({ onNavigate }) => {
             </p>
             <div className="hero-actions"><button className="btn btn-primary" onClick={() => onNavigate('/programs')}>Explore our programs <Icon name="arrow" size={16} /></button><button className="btn btn-ghost" onClick={() => onNavigate('/visit')}>Visit the campus</button></div>
           </div>
-          <div className="about-hero-image"><SiteImage src={settings?.campusImage || 'https://deekshaedu.in/wp-content/uploads/2025/03/Deekshaam-Buisness-School-Img-1.png'} alt="Classroom and student moments at Deekshaam" /><span>Established {settings?.founded || '2021'} · Devanahalli</span></div>
+          <div className="about-hero-image"><SiteImage src={settings?.campusImage || '/images/Deekshaam-Buisness-School-Img-1.webp'} alt="Classroom and student moments at Deekshaam" /><span>Established {settings?.founded || '2021'} · Devanahalli</span></div>
         </div>
       </section>
       <section className="section about-story-band"><div className="container about-story-grid"><div><span className="eyebrow light">Our approach</span><h2>Learning moves beyond the classroom.</h2><p>Programs combine university-aligned teaching with projects, presentation practice and career conversations that help students connect what they learn to what comes next.</p></div><div className="about-story-points"><p><strong>01</strong> Learn the fundamentals</p><p><strong>02</strong> Apply ideas in projects</p><p><strong>03</strong> Prepare for the workplace</p></div></div></section>

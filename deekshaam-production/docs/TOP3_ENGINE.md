@@ -8,7 +8,7 @@ One shared "Always Top 3" system for every results vertical. Whatever the user s
 - **Vertical registry**: `apps/api/src/top3/top3.controller.ts` — each vertical supplies only a config (filter priority, backfill order, sponsored quota).
 - **Shared card**: `apps/web/src/components/TopPicks.tsx` — one React component renders the Top 3 for every vertical; only labels change.
 - **API**: `GET /api/top3?vertical=job&city=Bangalore&department=Technology` — one endpoint serves all verticals.
-- **Prerender**: `scripts/prerender-top3.js` — bakes Top 3 HTML + JSON-LD + meta into static files at build time so crawlers see content without JS.
+- **Server render**: `apps/api/src/seo/render.ts` — serves every public URL with per-route meta, canonical, JSON-LD and readable content in the initial HTML, so crawlers see it without JS. Unknown URLs return 404.
 
 ## Current verticals
 
@@ -47,13 +47,13 @@ const verticalConfigs: Record<string, VerticalConfig> = {
 
 3. Map the DB records into `Listing` objects in `getEngine()`'s `listings` map.
 4. Add a landing page that renders `<TopPicks config={{ vertical: 'internship', ... }} />`.
-5. Add the route to `App.tsx`, the sitemap in `seo.controller.ts`, and a prerender entry in `scripts/prerender-top3.js`.
+5. Add the route to `App.tsx` and to `STATIC` (or `detail()`) in `apps/api/src/seo/render.ts`; the sitemap reads the same list.
 
 The engine, card component, relaxation, backfill, sponsored rule, and analytics events all apply automatically.
 
 ## SEO rules
 
-- Top 3 content is server-rendered via the prerender script (check view-source, not the rendered DOM).
+- Public pages are server-rendered by the API (check view-source, not the rendered DOM).
 - JSON-LD per vertical: `JobPosting` (jobs), `Course` (programs/certifications), plus `BreadcrumbList` on every page.
 - Unique meta titles/descriptions per vertical+filter combination, pulling in real specifics (city, count, top name).
 - Thin filter combinations (fewer than 3 exact matches) get `noindex,follow` — links still pass equity to detail pages.

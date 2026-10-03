@@ -18,11 +18,7 @@ export const Events: React.FC<EventsProps> = ({ onNavigate }) => {
 
   return (
     <>
-      <SEOHead
-        title="Campus Events & Seminars"
-        description="Upcoming and past institutional events, academic symposiums, and cultural festivals at Deekshaam Business School."
-        canonicalPath="/events"
-      />
+      <SEOHead canonicalPath="/events" />
 
       <section className="page-hero compact">
         <div className="container">
@@ -44,7 +40,7 @@ export const Events: React.FC<EventsProps> = ({ onNavigate }) => {
 
                 <div className="event-page-copy">
                   <span className="eyebrow">{evt.date}{evt.time ? ` · ${evt.time}` : ''}</span>
-                  <h2>{evt.title}</h2>
+                  <h2>{evt.slug ? <a href={`/events/${evt.slug}`} onClick={(e) => { e.preventDefault(); onNavigate(`/events/${evt.slug}`); }}>{evt.title}</a> : evt.title}</h2>
                   <p>{evt.description || evt.summary}</p>
                   {evt.location && <small><Icon name="map" size={15} /> {evt.location}</small>}
                 </div>

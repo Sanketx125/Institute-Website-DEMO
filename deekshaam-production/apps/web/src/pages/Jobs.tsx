@@ -37,10 +37,8 @@ export const Jobs: React.FC<JobsProps> = ({ onNavigate }) => {
     <>
       <SEOHead
         title={`Job-First Hiring Pathways in Bangalore${activeFilterCount ? ` — ${Object.values(filters).filter(Boolean).join(', ')}` : ''}`}
-        description={`Top 3 partner-company job pathways at Deekshaam Business School: join through HR tie-ups with Salesforce, HCLTech, HDFC Bank and more, then complete your degree alongside employment.`}
         canonicalPath="/jobs"
         noindex={isThinCombo}
-        structuredData={jobsStructuredData(jobs)}
       />
 
       <section className="page-hero compact">
@@ -147,32 +145,3 @@ export const Jobs: React.FC<JobsProps> = ({ onNavigate }) => {
     </>
   );
 };
-
-function jobsStructuredData(jobs: any[]) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'ItemList',
-    itemListElement: jobs.slice(0, 3).map((job, idx) => ({
-      '@type': 'ListItem',
-      position: idx + 1,
-      item: {
-        '@type': 'JobPosting',
-        title: job.title,
-        description: job.summary,
-        hiringOrganization: {
-          '@type': 'Organization',
-          name: job.employer,
-        },
-        jobLocation: {
-          '@type': 'Place',
-          address: {
-            '@type': 'PostalAddress',
-            addressLocality: job.city,
-            addressCountry: 'IN',
-          },
-        },
-        employmentType: 'FULL_TIME',
-      },
-    })),
-  };
-}

@@ -43,11 +43,7 @@ export const Visit: React.FC<VisitProps> = ({ onNavigate }) => {
 
   return (
     <>
-      <SEOHead
-        title="Schedule a Campus Visit"
-        description="Book an appointment to tour the Deekshaam Business School campus, inspect student facilities, and meet faculty."
-        canonicalPath="/visit"
-      />
+      <SEOHead canonicalPath="/visit" />
 
       <section className="page-hero compact">
         <div className="container">

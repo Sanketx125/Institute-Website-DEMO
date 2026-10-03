@@ -54,11 +54,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
 
   return (
     <>
-      <SEOHead
-        title="Undergraduate Programs & Certifications"
-        description="Study BBA, BCA, and B.Com in Bangalore at Deekshaam Business School. AICTE approved, university affiliated with work-integrated learning."
-        canonicalPath="/"
-      />
+      <SEOHead canonicalPath="/" />
 
       <section className="hero campus-hero">
         <div className="container hero-grid">
@@ -77,7 +73,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
             </div>
           </div>
           <div className="hero-media">
-            <SiteImage src={settings?.heroImage || 'https://deekshaedu.in/wp-content/uploads/2025/03/Deekshaam-Buisness-School-Img-1.png'} alt="Deekshaam Business School campus in Bengaluru" fetchPriority="high" />
+            <SiteImage src={settings?.heroImage || '/images/Deekshaam-Buisness-School-Img-1.webp'} alt="Deekshaam Business School campus in Bengaluru" fetchPriority="high" />
             <div className="campus-photo-label"><span>YOUR NEXT CHAPTER STARTS HERE</span><strong>A place to learn. Room to grow.</strong><small>Devanahalli, North Bengaluru</small></div>
           </div>
         </div>
@@ -217,7 +213,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
         <div className="container split-feature">
           <div className="feature-image">
             <SiteImage
-              src={settings?.campusImage || 'https://deekshaedu.in/wp-content/uploads/2025/03/Deekshaam-Buisness-School-Img-1.png'}
+              src={settings?.campusImage || '/images/Deekshaam-Buisness-School-Img-1.webp'}
               alt="DBS Campus"
             />
           </div>

@@ -19,6 +19,8 @@ import seoRoutes from './seo/routes';
 import analyticsRoutes from './analytics/routes';
 import aiRoutes from './ai/routes';
 import top3Routes from './top3/routes';
+import { seoRender, WEB_DIST } from './seo/render';
+import { trackContentChanges } from './seo/changes';
 
 export const app = express();
 
@@ -96,7 +98,8 @@ app.get('/api/health', (_req, res) => {
 // API route mounts
 app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
-app.use('/api/cms', cmsRoutes);
+// Fresh lastmod + IndexNow ping for any public page a CMS write changes
+app.use('/api/cms', trackContentChanges, cmsRoutes);
 app.use('/api/admissions', admissionsRoutes);
 app.use('/api/enquiries', enquiriesRoutes);
 app.use('/api/payments', paymentsRoutes);
@@ -116,6 +119,18 @@ app.use('/api/*', (req, res) => {
     },
   });
 });
+
+// Public website: built assets, then server-rendered HTML (real 404s, per-route meta)
+app.use(
+  express.static(WEB_DIST, {
+    index: false,
+    // Vite fingerprints /assets/*, so they never change under the same name
+    setHeaders: (res, filePath) => {
+      if (filePath.includes(`${path.sep}assets${path.sep}`)) res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    },
+  })
+);
+app.use(seoRender);
 
 // Global Error Handler
 app.use(errorHandler);

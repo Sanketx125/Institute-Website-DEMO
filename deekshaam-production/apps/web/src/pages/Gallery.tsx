@@ -21,11 +21,7 @@ export const Gallery: React.FC<GalleryProps> = ({ onNavigate }) => {
 
   return (
     <>
-      <SEOHead
-        title="Campus Photo Gallery"
-        description="Browse campus photographs and clearly labeled program visuals selected by the Deekshaam Business School team."
-        canonicalPath="/gallery"
-      />
+      <SEOHead canonicalPath="/gallery" />
 
       <section className="page-hero compact">
         <div className="container">

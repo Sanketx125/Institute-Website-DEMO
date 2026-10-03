@@ -54,27 +54,14 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({ slug, onNavigate }
     'APAAR / ABC ID as per institutional admission guidelines',
   ];
 
-  const courseSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Course',
-    name: program.title,
-    description: program.summary,
-    provider: {
-      '@type': 'EducationalOrganization',
-      name: 'Deekshaam Business School',
-      sameAs: window.location.origin,
-    },
-    educationalCredentialAwarded: program.code,
-    timeRequired: program.duration,
-  };
 
   return (
     <>
       <SEOHead
-        title={`${program.code} - ${program.title}`}
+        title={`${program.code} College in Bangalore - ${program.title}`}
+        image={program.image}
         description={program.summary}
         canonicalPath={`/programs/${program.slug}`}
-        structuredData={courseSchema}
       />
 
       {/* PROGRAM HERO */}

@@ -71,7 +71,7 @@ export const ProgramsAdmin: React.FC = () => {
               mode: 'Classroom learning',
               eligibility: '10+2 from recognized board',
               summary: '',
-              image: 'https://deekshaedu.in/wp-content/uploads/2024/03/BCA.png',
+              image: '/images/BCA.webp',
               specializations: [],
               careers: [],
               highlights: [],

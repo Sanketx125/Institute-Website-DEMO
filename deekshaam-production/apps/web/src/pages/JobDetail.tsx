@@ -49,10 +49,9 @@ export const JobDetail: React.FC<JobDetailProps> = ({ slug, onNavigate }) => {
   return (
     <>
       <SEOHead
-        title={`${job.title} at ${job.employer} — Job-First Pathway`}
+        title={`${job.title} at ${job.employer} - Job-First Pathway`}
         description={job.summary}
         canonicalPath={`/jobs/${slug}`}
-        structuredData={jobDetailStructuredData(job)}
       />
 
       <div className="container" style={{ padding: '60px 0 20px' }}>
@@ -145,87 +144,3 @@ export const JobDetail: React.FC<JobDetailProps> = ({ slug, onNavigate }) => {
     </>
   );
 };
-
-function parseStipend(stipend: string) {
-  // Simple heuristic for 'Rs 25,000 - 35,000/month'
-  const match = stipend?.match(/Rs\s*([\d,]+)\s*-\s*([\d,]+)/);
-  if (match) {
-    return {
-      minValue: parseInt(match[1].replace(/,/g, ''), 10),
-      maxValue: parseInt(match[2].replace(/,/g, ''), 10),
-    };
-  }
-  return null;
-}
-
-function jobDetailStructuredData(job: any) {
-  const parsed = parseStipend(job.stipend);
-  const baseSalary = parsed ? {
-    '@type': 'MonetaryAmount',
-    currency: 'INR',
-    value: {
-      '@type': 'QuantitativeValue',
-      minValue: parsed.minValue,
-      maxValue: parsed.maxValue,
-      unitText: 'MONTH'
-    }
-  } : undefined;
-
-  return {
-    '@context': 'https://schema.org',
-    '@graph': [
-      {
-        '@type': 'JobPosting',
-        title: job.title,
-        description: job.summary,
-        datePosted: job.createdAt || new Date().toISOString(),
-        validThrough: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
-        employmentType: 'FULL_TIME',
-        directApply: true,
-        hiringOrganization: {
-          '@type': 'Organization',
-          name: job.employer
-        },
-        jobLocation: {
-          '@type': 'Place',
-          address: {
-            '@type': 'PostalAddress',
-            addressLocality: job.city,
-            addressRegion: 'Karnataka',
-            addressCountry: 'IN'
-          }
-        },
-        baseSalary
-      },
-      {
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://deekshaam.edu.in/' },
-          { '@type': 'ListItem', position: 2, name: 'Jobs', item: 'https://deekshaam.edu.in/jobs' },
-          { '@type': 'ListItem', position: 3, name: job.title, item: `https://deekshaam.edu.in/jobs/${job.slug}` }
-        ]
-      },
-      {
-        '@type': 'FAQPage',
-        mainEntity: [
-          {
-            '@type': 'Question',
-            name: `How does the ${job.title} pathway work at Deekshaam?`,
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text: `You join ${job.employer} as a ${job.title} and start working in a ${job.mode?.toLowerCase() || 'hybrid'} setup, while simultaneously completing your ${job.degreePath} degree with Deekshaam.`
-            }
-          },
-          {
-            '@type': 'Question',
-            name: 'Is this a full-time job?',
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text: `Yes, you will be employed by ${job.employer} with a stipend of ${job.stipend}, and your degree runs in parallel.`
-            }
-          }
-        ]
-      }
-    ]
-  };
-}

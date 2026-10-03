@@ -40,10 +40,15 @@ export const institutionSeed = {
   admissionEmail: 'admission@deekshaedu.in',
   contactEmail: 'contact@deekshaedu.in',
   address: 'MY Samruddhi Nagar, Venkatapura Village, PO-Kundana Hobli, Devanahalli Taluk, Bangalore - 562110',
+  // Structured parts of the address for schema.org PostalAddress / local SEO.
+  // VERIFY against the Google Business Profile pin before launch (one source of truth).
+  streetAddress: 'MY Samruddhi Nagar, Venkatapura Village, PO-Kundana Hobli',
+  addressLocality: 'Devanahalli, Bengaluru Rural',
+  postalCode: '562110',
   coordinates: '13.2611403,77.5988094',
   affiliations: ['AICTE, New Delhi', 'Government of Karnataka', 'Bengaluru North University'],
-  heroImage: 'https://deekshaedu.in/wp-content/uploads/2025/03/Deekshaam-Buisness-School-Img-1.png',
-  campusImage: 'https://deekshaedu.in/wp-content/uploads/2025/03/Deekshaam-Buisness-School-Img-1.png',
+  heroImage: '/images/Deekshaam-Buisness-School-Img-1.webp',
+  campusImage: '/images/Deekshaam-Buisness-School-Img-1.webp',
   logoImage: '/logo.svg',
   socialLinksJson: JSON.stringify({
     facebook: 'https://facebook.com/deekshaam',
@@ -67,7 +72,7 @@ export const programsSeed = [
     duration: '3 years',
     mode: 'Classroom + live interactive learning',
     eligibility: '10+2 in Humanities, Commerce or Science from a recognized board; minimum 50% aggregate (45% for SC/ST/OBC candidates).',
-    image: 'https://deekshaedu.in/wp-content/uploads/2024/03/2.png',
+    image: '/images/2.webp',
     summary: 'Build a strong base in management, commerce and data-led decision making through applied projects, industry exposure and specialization pathways.',
     specializations: ['Digital Marketing + AI', 'Business Analytics', 'Travel & Tourism Management', 'Banking & Finance Management', 'Hotel Management', 'Marketing Management', 'Supply Chain & Inventory', 'Logistics Management'],
     careers: ['Business Analyst', 'Marketing Analyst', 'Operations Executive', 'Financial Services Associate', 'Sales and Growth Executive', 'Supply Chain Executive'],
@@ -90,7 +95,7 @@ export const programsSeed = [
     duration: '3 years',
     mode: 'Classroom + live interactive learning',
     eligibility: '10+2 in Humanities, Commerce or Science from a recognized board; minimum 50% aggregate (45% for SC/ST/OBC candidates).',
-    image: 'https://deekshaedu.in/wp-content/uploads/2024/03/BCA.png',
+    image: '/images/BCA.webp',
     summary: 'Learn programming, databases, web development, networks, cloud and software engineering through practical labs and progressive project work.',
     specializations: ['Artificial Intelligence & Machine Learning', 'Data Analytics', 'Cyber Security', 'Cloud Computing'],
     careers: ['Software Developer', 'Web Developer', 'Network Administrator', 'System Administrator', 'IT Support Specialist', 'QA Tester'],
@@ -113,7 +118,7 @@ export const programsSeed = [
     duration: '3 years',
     mode: 'Classroom learning',
     eligibility: '10+2 in Humanities, Commerce or Science from a recognized board; minimum 50% aggregate (45% for SC/ST/OBC candidates).',
-    image: 'https://deekshaedu.in/wp-content/uploads/elementor/thumbs/arts-1-qlt7sxguf5drb2bhqpcmn8bgp7vsuhsk0s0x3a09zc.jpg',
+    image: '/images/arts-1-qlt7sxguf5drb2bhqpcmn8bgp7vsuhsk0s0x3a09zc.jpg',
     summary: 'Build a strong foundation in accounting, finance, banking, taxation, marketing and business decision-making through six semesters of applied commerce learning.',
     specializations: ['Accounting & Finance', 'Banking & Insurance', 'E-Commerce'],
     careers: ['Accountant', 'Auditor', 'Banking Professional', 'Business Intelligence Analyst', 'Financial Analyst', 'Tax Consultant', 'Business Analyst', 'Data Consultant'],
@@ -144,20 +149,20 @@ export const certificationsSeed = [
 ];
 
 export const leadersSeed = [
-  { name: 'Pushpa B', role: 'Founder & Director', note: 'Deekshaam Business School / Deeksha Education Trust', image: 'https://deekshaedu.in/wp-content/uploads/2024/07/DSC_4910-1-233x300.jpg', isLeadership: true, order: 1 },
-  { name: 'Manoj Baitha', role: 'Admin Head, Marketing & Admission Director', note: 'Institution leadership', image: 'https://deekshaedu.in/wp-content/uploads/elementor/thumbs/DSC_4912-qqsttij3ttx45tgp6ad1j0wzronhumosx27gwai7fg.jpg', isLeadership: true, order: 2 },
-  { name: 'Dr. Tukaram', role: 'Principal', note: 'Academic leadership', image: 'https://deekshaedu.in/wp-content/uploads/2025/07/Screenshot-2025-07-25-102127.jpg', isLeadership: true, order: 3 }
+  { name: 'Pushpa B', role: 'Founder & Director', note: 'Deekshaam Business School / Deeksha Education Trust', image: '/images/DSC_4910-1-233x300.jpg', isLeadership: true, order: 1 },
+  { name: 'Manoj Baitha', role: 'Admin Head, Marketing & Admission Director', note: 'Institution leadership', image: '/images/DSC_4912-qqsttij3ttx45tgp6ad1j0wzronhumosx27gwai7fg.jpg', isLeadership: true, order: 2 },
+  { name: 'Dr. Tukaram', role: 'Principal', note: 'Academic leadership', image: '/images/Screenshot-2025-07-25-102127.jpg', isLeadership: true, order: 3 }
 ];
 
 export const employersSeed = [
-  { name: 'Salesforce', logoUrl: 'https://deekshaedu.in/wp-content/uploads/2025/03/Sales-Force.jpg' },
-  { name: 'HCLTech', logoUrl: 'https://deekshaedu.in/wp-content/uploads/2025/03/Hcl.jpg' },
-  { name: 'ITC Limited', logoUrl: 'https://deekshaedu.in/wp-content/uploads/2025/03/ITC.jpg' },
-  { name: 'HDFC Bank', logoUrl: 'https://deekshaedu.in/wp-content/uploads/2025/03/hdfc-bank.webp' },
-  { name: 'MTR', logoUrl: 'https://deekshaedu.in/wp-content/uploads/2025/03/MTR.webp' },
-  { name: 'Johnson Controls', logoUrl: 'https://deekshaedu.in/wp-content/uploads/2025/03/Johnsons-Control.webp' },
-  { name: 'Hector Beverages', logoUrl: 'https://deekshaedu.in/wp-content/uploads/2025/03/Hector.webp' },
-  { name: 'Kellogg\'s', logoUrl: 'https://deekshaedu.in/wp-content/uploads/2025/03/Kellogs.webp' }
+  { name: 'Salesforce', logoUrl: '/images/Sales-Force.jpg' },
+  { name: 'HCLTech', logoUrl: '/images/Hcl.jpg' },
+  { name: 'ITC Limited', logoUrl: '/images/ITC.jpg' },
+  { name: 'HDFC Bank', logoUrl: '/images/hdfc-bank.webp' },
+  { name: 'MTR', logoUrl: '/images/MTR.webp' },
+  { name: 'Johnson Controls', logoUrl: '/images/Johnsons-Control.webp' },
+  { name: 'Hector Beverages', logoUrl: '/images/Hector.webp' },
+  { name: 'Kellogg\'s', logoUrl: '/images/Kellogs.webp' }
 ];
 
 export const newsSeed = [
@@ -241,10 +246,10 @@ export const noticesSeed = [
 ];
 
 export const gallerySeed = [
-  { title: 'Learning at Deekshaam', category: 'Campus', imageUrl: 'https://deekshaedu.in/wp-content/uploads/2025/03/Deekshaam-Buisness-School-Img-1.png', caption: 'A collage of classroom and student moments published by Deekshaam', order: 1, status: 'PUBLISHED' },
-  { title: 'Computer applications', category: 'Illustration', imageUrl: 'https://deekshaedu.in/wp-content/uploads/2024/03/BCA.png', caption: 'Illustrative program image', order: 2, status: 'PUBLISHED' },
-  { title: 'Business learning', category: 'Illustration', imageUrl: 'https://deekshaedu.in/wp-content/uploads/2024/03/2.png', caption: 'Illustrative program image', order: 3, status: 'PUBLISHED' },
-  { title: 'Collaborative learning', category: 'Illustration', imageUrl: 'https://deekshaedu.in/wp-content/uploads/elementor/thumbs/arts-1-qlt7sxguf5drb2bhqpcmn8bgp7vsuhsk0s0x3a09zc.jpg', caption: 'Illustrative student image', order: 4, status: 'PUBLISHED' }
+  { title: 'Learning at Deekshaam', category: 'Campus', imageUrl: '/images/Deekshaam-Buisness-School-Img-1.webp', caption: 'A collage of classroom and student moments published by Deekshaam', order: 1, status: 'PUBLISHED' },
+  { title: 'Computer applications', category: 'Illustration', imageUrl: '/images/BCA.webp', caption: 'Illustrative program image', order: 2, status: 'PUBLISHED' },
+  { title: 'Business learning', category: 'Illustration', imageUrl: '/images/2.webp', caption: 'Illustrative program image', order: 3, status: 'PUBLISHED' },
+  { title: 'Collaborative learning', category: 'Illustration', imageUrl: '/images/arts-1-qlt7sxguf5drb2bhqpcmn8bgp7vsuhsk0s0x3a09zc.jpg', caption: 'Illustrative student image', order: 4, status: 'PUBLISHED' }
 ];
 
 export const documentsSeed = [

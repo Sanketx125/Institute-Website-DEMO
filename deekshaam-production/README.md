@@ -29,7 +29,7 @@ deekshaam-production/
 │       │   ├── enquiries/       # Leads, callbacks, campus visit bookings
 │       │   ├── payments/        # Razorpay order generation, HMAC SHA-256 verification, webhooks
 │       │   ├── search/          # Full-text indexing & search engine
-│       │   ├── seo/             # Dynamic sitemap.xml & robots.txt generation
+│       │   ├── seo/             # Server-rendered SEO HTML, sitemaps, robots.txt, IndexNow (docs/SEO.md)
 │       │   ├── analytics/       # Telemetry ingestion & dashboard summary
 │       │   └── ai/              # Provider-agnostic AI assistant adapter with domain knowledge
 │       └── server.ts

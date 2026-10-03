@@ -26,6 +26,10 @@ services:
       DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/deekshaam_production?schema=public
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required - generate one with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"}
       CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost}
+      GOOGLE_SITE_VERIFICATION: ${GOOGLE_SITE_VERIFICATION:-}
+      BING_SITE_VERIFICATION: ${BING_SITE_VERIFICATION:-}
+      INDEXNOW_KEY: ${INDEXNOW_KEY:-}
+      BLOCK_AI_TRAINING: ${BLOCK_AI_TRAINING:-false}
       RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
       RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:?RAZORPAY_KEY_SECRET is required}
       RAZORPAY_WEBHOOK_SECRET: ${RAZORPAY_WEBHOOK_SECRET:?RAZORPAY_WEBHOOK_SECRET is required}

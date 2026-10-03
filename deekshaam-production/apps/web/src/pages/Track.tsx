@@ -60,11 +60,7 @@ export const Track: React.FC<TrackProps> = ({ onNavigate }) => {
 
   return (
     <>
-      <SEOHead
-        title="Track Application Status"
-        description="Check real-time application status and admission milestone progress at Deekshaam Business School."
-        canonicalPath="/track"
-      />
+      <SEOHead canonicalPath="/track" />
 
       <section className="page-hero compact">
         <div className="container">

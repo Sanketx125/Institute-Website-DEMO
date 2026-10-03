@@ -64,7 +64,7 @@ deekshaam-production/
 6. **Phase 6 (Admissions)**: 4-step online application wizard, auto-save drafts, institutional ID generation (`DBS-YYYY-XXXXXX`), private document uploads, 5-stage tracking portal, and staff review inbox.
 7. **Phase 7 (Enquiries & Leads)**: Callback request forms, campus visit scheduler with time slots, admin lead inbox, status lifecycle tracking (`NEW`, `CONTACTED`, `FOLLOW_UP`, `CLOSED`).
 8. **Phase 8 (Payments)**: Server-side Razorpay order generation, client checkout, HMAC SHA-256 signature verification, webhook processing, and admin transaction reconciliation.
-9. **Phase 9 (Search, SEO & Analytics)**: Site-wide full-text search (`Ctrl+K`), dynamic `sitemap.xml`, production `robots.txt`, Schema.org structured data, first-party event tracking.
+9. **Phase 9 (Search, SEO & Analytics)**: Site-wide full-text search (`Ctrl+K`), dynamic `sitemap.xml`, production `robots.txt`, Schema.org structured data, first-party event tracking. See `docs/ANALYTICS.md` for the staff Analytics workspace.
 10. **Phase 10 (Optional AI Chatbot)**: Deeksha Guide virtual assistant with provider-agnostic adapter, institutional knowledge retrieval, safe domain guardrails, and human callback fallback.
 
 ---

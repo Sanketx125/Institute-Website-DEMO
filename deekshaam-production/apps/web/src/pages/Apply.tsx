@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Icon } from '@deekshaam/ui';
 import { api } from '../services/api';
 import { SEOHead } from '../components/SEOHead';
+import { track } from '../services/track';
 import { NotificationModal, NotificationType } from '../components/NotificationModal';
 
 declare global {
@@ -106,24 +107,33 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
     if (currentStep === 1) {
       if (!formData.fullName || !formData.email || !formData.phone || !formData.dob || !formData.state || !formData.city) {
         showAlert('Please fill out all personal profile fields including full name, email, phone, date of birth, state, and city.', 'Incomplete Profile', 'warning');
+        track('apply_error', { step: currentStep });
         return false;
       }
     } else if (currentStep === 2) {
       if (!formData.programSlug) {
         showAlert('Please select your preferred undergraduate degree program (BBA, BCA, or B.Com) to proceed.', 'Program Preference Required', 'warning');
+        track('apply_error', { step: currentStep });
         return false;
       }
     } else if (currentStep === 3) {
       if (!formData.board10 || !formData.year10 || !formData.board12 || !formData.year12 || !formData.percentage) {
         showAlert('Please fill out all academic examination records for 10th and 12th standards.', 'Academic Records Required', 'warning');
+        track('apply_error', { step: currentStep });
         return false;
       }
     }
     return true;
   };
 
+  // Funnel analytics: anonymous step events (never form values). Program is only known after step 1.
+  useEffect(() => {
+    track('apply_step', { action: 'view', step, ...(step > 1 ? { program: formData.programSlug } : {}) });
+  }, [step]);
+
   const nextStep = () => {
     if (validateStep(step)) {
+      track('apply_step', { action: 'complete', step, ...(step > 1 ? { program: formData.programSlug } : {}) });
       setStep((prev) => Math.min(4, prev + 1));
     }
   };
@@ -141,6 +151,7 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
       const res = await api.submitApplication(formData);
       const appData = res;
       setSubmittedApp(appData);
+      track('apply_submitted', { program: formData.programSlug });
       if (appData.accessToken) {
         sessionStorage.setItem(`dbs_app_token_${appData.id}`, appData.accessToken);
       }
@@ -167,6 +178,7 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
 
       localStorage.removeItem('dbs_application_draft');
     } catch (err: any) {
+      track('apply_error', { step: 4 });
       showAlert(`Submission failed: ${err.message}`, 'Application Submission Error', 'error');
     } finally {
       setLoading(false);
@@ -206,6 +218,7 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
                 signature: response.razorpay_signature,
               });
               setPaymentSuccess(true);
+              track('payment_success', { program: formData.programSlug });
               showToast('Payment verified successfully!');
             } catch (verErr: any) {
               showAlert('Payment signature verification failed: ' + verErr.message, 'Payment Verification Failed', 'error');

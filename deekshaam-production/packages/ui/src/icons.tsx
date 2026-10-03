@@ -28,7 +28,8 @@ export interface IconProps {
     | 'filter'
     | 'eye'
     | 'eye-off'
-    | 'refresh';
+    | 'refresh'
+    | 'chart';
   size?: number;
   className?: string;
   color?: string;
@@ -39,6 +40,13 @@ export const Icon: React.FC<IconProps> = ({ name, size = 20, className = '', col
   const c = color;
 
   switch (name) {
+    case 'chart':
+      return (
+        <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+          <line x1="4" y1="20" x2="20" y2="20" />
+          <polyline points="5 15 10 10 14 13 20 6" />
+        </svg>
+      );
     case 'arrow':
       return (
         <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>

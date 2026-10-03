@@ -1,3 +1,5 @@
+import { sendEvent } from './track';
+
 const API_BASE = '/api';
 
 export function getAuthToken(): string | null {
@@ -104,7 +106,8 @@ export const api = {
   askAI: (message: string) => request('/ai/chat', { method: 'POST', body: JSON.stringify({ message }) }),
 
   // Analytics
-  trackEvent: (data: any) => request('/analytics/event', { method: 'POST', body: JSON.stringify(data) }),
+  trackEvent: (data: any) => sendEvent(data),
+  getAnalyticsReport: (range: number) => request(`/analytics/report?range=${range}`),
   getAnalyticsSummary: () => request('/analytics/summary'),
 
   // Auth & Admin

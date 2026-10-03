@@ -81,7 +81,7 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({ slug, onNavigate }
             <p>{program.summary}</p>
 
             <div className="hero-actions">
-              <button className="btn btn-primary" onClick={() => onNavigate(`/apply?program=${program.slug}`)}>
+              <button className="btn btn-primary" data-track="apply" data-track-program={program.slug} onClick={() => onNavigate(`/apply?program=${program.slug}`)}>
                 Apply for {program.code} <Icon name="arrow" size={16} />
               </button>
               <button className="btn btn-ghost" onClick={() => onNavigate('/compare')}>
@@ -192,7 +192,7 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({ slug, onNavigate }
           <div className="semester-list">
             {program.curriculum?.map((semSubjects: string[], semIdx: number) => (
               <details key={semIdx} open={semIdx === 0}>
-                <summary>
+                <summary data-track="semester" data-track-program={program.slug}>
                   <span>Semester {semIdx + 1}</span>
                   <Icon name="chevron" size={18} />
                 </summary>
@@ -248,6 +248,8 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({ slug, onNavigate }
             <p>Complete your online profile, upload credentials, and reserve your seat for the upcoming academic cycle.</p>
             <button
               className="btn btn-primary full"
+              data-track="apply"
+              data-track-program={program.slug}
               style={{ marginTop: '16px' }}
               onClick={() => onNavigate(`/apply?program=${program.slug}`)}
             >
@@ -257,6 +259,8 @@ export const ProgramDetail: React.FC<ProgramDetailProps> = ({ slug, onNavigate }
               <a
                 href="/visit"
                 className="text-link"
+                data-track="visit"
+                data-track-program={program.slug}
                 onClick={(e) => {
                   e.preventDefault();
                   onNavigate('/visit');

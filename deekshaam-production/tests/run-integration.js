@@ -316,6 +316,25 @@ async function runTestSuite() {
     const publicEvents = await request('/api/cms/events');
     assert(eventCreated.status === 201 && !publicEvents.data.data.some(item => item.id === eventCreated.data.data.id), 'Draft event stays off public calendar');
 
+    // Analytics: anonymous events -> funnel, program demand, sources, insights
+    const send = (body, headers = {}) => request('/api/analytics/event', { method: 'POST', headers, body: JSON.stringify(body) });
+    const v1 = { visitorId: 'visitor-test-0001', sessionId: 'session-test-0001', device: 'phone', referrer: 'https://www.google.com/' };
+    const step = (action, n, program) => send({ eventType: 'apply_step', pagePath: '/apply', ...v1, metadata: { action, step: n, ...(program ? { program } : {}) } });
+    await send({ eventType: 'page_view', pagePath: '/programs/bca', ...v1 });
+    await step('view', 1); await step('complete', 1); await step('view', 2, 'bca'); await step('complete', 2, 'bca'); await step('view', 3, 'bca');
+    await send({ eventType: 'cta_click', pagePath: '/programs/bca', ...v1, metadata: { label: 'apply', program: 'bca' } });
+    await send({ eventType: 'page_view', pagePath: '/programs/bca', visitorId: 'visitor-test-0002', sessionId: 'session-test-0002', device: 'desktop' });
+    assert((await send({ eventType: 'page_view', pagePath: 'no-slash' })).status === 400, 'Malformed analytics event is rejected');
+    assert((await send({ eventType: 'page_view', pagePath: '/admin/dashboard', visitorId: 'visitor-test-0003', sessionId: 'session-test-0003' })).status === 202, 'Staff page views are accepted but ignored');
+    assert((await request('/api/analytics/report?range=30')).status === 401, 'Analytics report requires staff authentication');
+    const rep = await request('/api/analytics/report?range=30', { headers: editorialHeaders });
+    const f = Object.fromEntries(rep.data.data.funnel.map((s) => [s.key, s.count]));
+    const bcaRep = rep.data.data.programs.find((p) => p.slug === 'bca');
+    assert(rep.status === 200 && f.viewed >= 2 && f.started >= 1 && f.personal >= 1 && f.program >= 1 && f.academic === 0, 'Analytics funnel counts sessions per application step');
+    assert(bcaRep && bcaRep.views >= 2 && bcaRep.starts >= 1 && bcaRep.funnel.length === 7 && bcaRep.weekly.starts.cur.length === 12, 'Program report has views, starts and a 12-week series');
+    assert(rep.data.data.sources.some((s) => s.label === 'Google search') && rep.data.data.devices.some((d) => d.label === 'phone'), 'Sources and devices are classified from referrer and device');
+    assert(!JSON.stringify(rep.data.data).includes('visitor-test'), 'Analytics report exposes no visitor identifiers');
+
     // SEO lifecycle: draft 404 -> publish 200 + Event schema + fresh lastmod -> archive 410
     if (fs.existsSync(require('path').join(__dirname, '../apps/web/dist/index.html'))) {
       const eventPath = `/events/${eventPayload.slug}`;

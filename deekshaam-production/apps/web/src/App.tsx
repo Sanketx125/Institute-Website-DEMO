@@ -4,6 +4,8 @@ import { Footer } from './components/Footer';
 import { SearchModal } from './components/SearchModal';
 import { AIChatbot } from './components/AIChatbot';
 import { SEOHead } from './components/SEOHead';
+import { track } from './services/track';
+import { MobileActionBar } from './components/MobileActionBar';
 
 // Public Pages
 import { Home } from './pages/Home';
@@ -35,6 +37,7 @@ import { AdminFeedbackProvider } from './admin/AdminFeedback';
 import { AdminLogin } from './admin/AdminLogin';
 import { AdminLayout } from './admin/AdminLayout';
 import { Dashboard } from './admin/Dashboard';
+import { AnalyticsAdmin } from './admin/AnalyticsAdmin';
 import { SiteSettingsAdmin } from './admin/SiteSettingsAdmin';
 import { MediaAdmin } from './admin/MediaAdmin';
 import { ProgramsAdmin } from './admin/ProgramsAdmin';
@@ -64,6 +67,16 @@ export const App: React.FC = () => {
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Delegated CTA analytics: any element with data-track="label" (and optional data-track-program)
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      const el = (e.target as HTMLElement | null)?.closest<HTMLElement>('[data-track]');
+      if (el) track('cta_click', { label: el.dataset.track, program: el.dataset.trackProgram });
+    };
+    document.addEventListener('click', onClick);
+    return () => document.removeEventListener('click', onClick);
   }, []);
 
   // Global Ctrl+K listener for search
@@ -141,6 +154,7 @@ export const App: React.FC = () => {
           onNavigatePublic={navigate}
         >
           {selectedTab === 'dashboard' && (currentUser?.role === 'SUPER_ADMIN' ? <Dashboard onSelectTab={setAdminTab} /> : <WorkspaceHome user={currentUser} onSelectTab={setAdminTab} />)}
+          {selectedTab === 'analytics' && <AnalyticsAdmin />}
           {selectedTab === 'settings' && <SiteSettingsAdmin />}
           {selectedTab === 'media' && <MediaAdmin />}
           {selectedTab === 'programs' && <ProgramsAdmin />}
@@ -242,7 +256,7 @@ export const App: React.FC = () => {
         <Header currentPath={currentPath} onNavigate={navigate} onOpenSearch={() => setSearchOpen(true)} />
       )}
 
-      {renderContent()}
+      <div key={isAdminRoute ? 'admin' : currentPath} className={isAdminRoute ? undefined : 'route-fade'}>{renderContent()}</div>
 
       {!isAdminRoute && <Footer onNavigate={navigate} />}
 
@@ -250,6 +264,7 @@ export const App: React.FC = () => {
         <>
           <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} onNavigate={navigate} />
           <AIChatbot onNavigate={navigate} />
+          {currentPath !== '/apply' && currentPath !== '/track' && <MobileActionBar onNavigate={navigate} />}
         </>
       )}
     </div>

@@ -3,6 +3,7 @@ export const roleLabels: Record<string, string> = {
 };
 export const workspaceModules = [
   { id: 'dashboard', label: 'Overview', icon: 'grid', group: 'Workspace', roles: Object.keys(roleLabels), description: 'Your workspace and quick actions.' },
+  { id: 'analytics', label: 'Analytics', icon: 'chart', group: 'Workspace', roles: ['SUPER_ADMIN', 'ADMISSION_STAFF'], description: 'See which programs are trending and where applicants drop off.' },
   { id: 'admissions', label: 'Applications', icon: 'user', group: 'Student services', roles: ['SUPER_ADMIN', 'ADMISSION_STAFF'], description: 'Review applications and update admission stages.' },
   { id: 'leads', label: 'Enquiries & visits', icon: 'message', group: 'Student services', roles: ['SUPER_ADMIN', 'ADMISSION_STAFF', 'ENQUIRY_STAFF'], description: 'Follow up with prospective students and plan visits.' },
   { id: 'payments', label: 'Payments', icon: 'check', group: 'Student services', roles: ['SUPER_ADMIN'], description: 'Review payment records and reconciliation.' },

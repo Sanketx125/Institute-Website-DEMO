@@ -15,6 +15,19 @@ import {
 import { jobsSeed } from './jobs-seed';
 import bcrypt from 'bcryptjs';
 import { requiredPassword } from '../config';
+import path from 'path';
+import fs from 'fs';
+
+export function findProjectRoot(startDir: string): string {
+  let cur = startDir;
+  while (cur && cur !== path.dirname(cur)) {
+    if (fs.existsSync(path.join(cur, 'package.json')) && (fs.existsSync(path.join(cur, 'storage')) || fs.existsSync(path.join(cur, 'apps')))) {
+      return cur;
+    }
+    cur = path.dirname(cur);
+  }
+  return path.resolve(__dirname, '../../../..');
+}
 
 // Prisma client instance
 export const prisma = new PrismaClient();

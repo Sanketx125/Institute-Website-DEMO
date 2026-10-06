@@ -103,7 +103,11 @@
 .workspace-brand img { width: 40px; }
 .workspace-brand strong { font-size: 19px; }
 .workspace-brand small { display: block; font-size: 8px; letter-spacing: 2px; color: #becdd7; margin-top: 3px; }
-.admin-nav { padding: 0; gap: 4px; }
+.admin-nav { padding: 0 4px 0 0; gap: 4px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.22) transparent !important; }
+.admin-nav::-webkit-scrollbar { width: 5px; }
+.admin-nav::-webkit-scrollbar-track { background: transparent !important; }
+.admin-nav::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.22) !important; border-radius: 9999px !important; }
+.admin-nav::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.45) !important; }
 .workspace-group { display: block; padding: 22px 14px 8px; font-size: 9px; letter-spacing: 1.7px; text-transform: uppercase; color: #91a8b9; }
 .admin-nav button { color: #c7d5de; border-radius: 7px; padding: 11px 14px; font-size: 12px; min-height: 42px; }
 .admin-nav button.active { background: #fff; color: #112e46; font-weight: 650; }
@@ -157,7 +161,11 @@
 .workspace-help p { font-size: 13px; }
 .workspace-page-heading p { color: var(--muted); font-size: 14px; }
 .workspace-footer { padding: 22px 36px; font-size: 10px; color: #748591; border-top: 1px solid #e1e7eb; display: flex; justify-content: space-between; }
-.workspace-editor { width: min(780px, calc(100% - 32px)); padding: 0; }
+.workspace-editor { width: min(780px, calc(100% - 32px)); padding: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(100, 116, 139, 0.35) transparent !important; }
+.workspace-editor::-webkit-scrollbar { width: 6px; }
+.workspace-editor::-webkit-scrollbar-track { background: transparent !important; }
+.workspace-editor::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.35) !important; border-radius: 9999px !important; }
+.workspace-editor::-webkit-scrollbar-thumb:hover { background: rgba(71, 85, 105, 0.65) !important; }
 .workspace-editor-body { padding: 30px; }
 .workspace-editor h2 { color: var(--navy-900); }
 .workspace-editor form { display: flex; flex-direction: column; gap: 16px; }

@@ -31,6 +31,141 @@
 
 * {
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+}
+
+/* Global sleek scrollbar design across all browsers and operating systems */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.38);
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.65);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Dark surface containers: Admin Sidebar, Admin Navigation, Workspace Drawer, etc. */
+.admin-sidebar,
+.admin-nav,
+.workspace-drawer,
+.login-story,
+.an-notes,
+[data-theme="dark"] {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.22) transparent !important;
+}
+
+.admin-sidebar::-webkit-scrollbar,
+.admin-nav::-webkit-scrollbar,
+.workspace-drawer::-webkit-scrollbar,
+.login-story::-webkit-scrollbar,
+.an-notes::-webkit-scrollbar,
+[data-theme="dark"] ::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.admin-sidebar::-webkit-scrollbar-track,
+.admin-nav::-webkit-scrollbar-track,
+.workspace-drawer::-webkit-scrollbar-track,
+.login-story::-webkit-scrollbar-track,
+.an-notes::-webkit-scrollbar-track,
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb,
+.admin-nav::-webkit-scrollbar-thumb,
+.workspace-drawer::-webkit-scrollbar-thumb,
+.login-story::-webkit-scrollbar-thumb,
+.an-notes::-webkit-scrollbar-thumb,
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22) !important;
+  border-radius: 9999px !important;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb:hover,
+.admin-nav::-webkit-scrollbar-thumb:hover,
+.workspace-drawer::-webkit-scrollbar-thumb:hover,
+.login-story::-webkit-scrollbar-thumb:hover,
+.an-notes::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.45) !important;
+}
+
+/* Modals, Dialogs, Tables, Textareas */
+dialog,
+.campus-dialog,
+.workspace-editor,
+.notification-dialog,
+.notice-list,
+.table-responsive,
+textarea {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
+}
+
+dialog::-webkit-scrollbar,
+.campus-dialog::-webkit-scrollbar,
+.workspace-editor::-webkit-scrollbar,
+.notification-dialog::-webkit-scrollbar,
+.notice-list::-webkit-scrollbar,
+.table-responsive::-webkit-scrollbar,
+textarea::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+dialog::-webkit-scrollbar-track,
+.campus-dialog::-webkit-scrollbar-track,
+.workspace-editor::-webkit-scrollbar-track,
+.notification-dialog::-webkit-scrollbar-track,
+.notice-list::-webkit-scrollbar-track,
+.table-responsive::-webkit-scrollbar-track,
+textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+dialog::-webkit-scrollbar-thumb,
+.campus-dialog::-webkit-scrollbar-thumb,
+.workspace-editor::-webkit-scrollbar-thumb,
+.notification-dialog::-webkit-scrollbar-thumb,
+.notice-list::-webkit-scrollbar-thumb,
+.table-responsive::-webkit-scrollbar-thumb,
+textarea::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.35);
+  border-radius: 9999px;
+}
+
+dialog::-webkit-scrollbar-thumb:hover,
+.campus-dialog::-webkit-scrollbar-thumb:hover,
+.workspace-editor::-webkit-scrollbar-thumb:hover,
+.notification-dialog::-webkit-scrollbar-thumb:hover,
+.notice-list::-webkit-scrollbar-thumb:hover,
+.table-responsive::-webkit-scrollbar-thumb:hover,
+textarea::-webkit-scrollbar-thumb:hover {
+  background: rgba(71, 85, 105, 0.65);
 }
 
 html {

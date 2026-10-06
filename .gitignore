@@ -8,3 +8,6 @@ Thumbs.db
 .commandcode/
 artifacts/
 *.log
+.skill_extracted/
+storage/data/
+storage/emails/

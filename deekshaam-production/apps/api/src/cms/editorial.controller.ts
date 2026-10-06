@@ -40,11 +40,42 @@ export const saveEditorialItem = (collection: Collection) => (req: Authenticated
     return res.status(409).json({ success: false, error: { code: 'CONFLICT', message: 'An event already uses this URL slug.' } });
   }
   const now = new Date().toISOString();
+  const isPublishing = validated.status === 'PUBLISHED';
   const item = index < 0
-    ? { ...validated, id: `${collection.slice(0, 3)}-${randomUUID()}`, createdAt: now, updatedAt: now }
-    : { ...items[index], ...validated, updatedAt: now };
+    ? {
+        ...validated,
+        id: `${collection.slice(0, 3)}-${randomUUID()}`,
+        createdAt: now,
+        updatedAt: now,
+        publishedAt: isPublishing ? now : null,
+      }
+    : {
+        ...items[index],
+        ...validated,
+        updatedAt: now,
+        publishedAt: isPublishing ? (items[index].publishedAt || now) : items[index].publishedAt || null,
+      };
   if (index < 0) items.unshift(item); else items[index] = item;
   if (collection === 'events') memoryDb.buildSearchIndex();
   recordAuditLog({ action: index < 0 ? 'CREATE' : 'UPDATE', entity: names[collection], entityId: item.id, userId: req.user?.id, userEmail: req.user?.email, details: { title: (item as any).title || (item as any).name, status: (item as any).status } });
   return res.status(index < 0 ? 201 : 200).json({ success: true, data: item });
+};
+
+export const deleteEditorialItem = (collection: Collection) => (req: AuthenticatedRequest, res: Response) => {
+  const items = memoryDb[collection];
+  const index = items.findIndex(item => item.id === req.params.id);
+  if (index < 0) {
+    return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Content item not found.' } });
+  }
+  const deleted = items.splice(index, 1)[0];
+  if (collection === 'events') memoryDb.buildSearchIndex();
+  recordAuditLog({
+    action: 'DELETE',
+    entity: names[collection],
+    entityId: deleted.id,
+    userId: req.user?.id,
+    userEmail: req.user?.email,
+    details: { title: (deleted as any).title || (deleted as any).name },
+  });
+  return res.json({ success: true, data: { id: deleted.id } });
 };

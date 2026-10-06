@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { validatePromoCodeSchema } from '@deekshaam/validation';
 import { referralService } from './referral.service';
+import { memoryDb } from '../database/client';
 
 export function validatePromoCode(req: Request, res: Response) {
   if (!referralService.isEnabled()) {
@@ -21,8 +22,8 @@ export function validatePromoCode(req: Request, res: Response) {
     });
   }
 
-  const { code } = parsed.data;
-  const outcome = referralService.validateCode(code);
+  const { code, programSlug } = parsed.data;
+  const outcome = referralService.validateCode(code, undefined, programSlug);
 
   if (!outcome.valid || !outcome.calculation) {
     return res.status(400).json({
@@ -35,6 +36,14 @@ export function validatePromoCode(req: Request, res: Response) {
   }
 
   const { calculation } = outcome;
+  const prog = programSlug
+    ? memoryDb.programs.find(
+        (p: any) =>
+          p.slug === programSlug ||
+          p.code?.toLowerCase() === programSlug.toLowerCase() ||
+          p.id === programSlug
+      )
+    : null;
 
   res.json({
     success: true,
@@ -45,7 +54,9 @@ export function validatePromoCode(req: Request, res: Response) {
       discountAmount: calculation.discountAmountPaise / 100, // in INR
       originalFee: calculation.grossFeePaise / 100, // in INR
       finalFee: calculation.netFeePaise / 100, // in INR
+      totalCourseFee: prog?.totalFee || 0,
       message: outcome.message,
     },
   });
 }
+

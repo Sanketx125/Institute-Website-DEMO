@@ -144,6 +144,8 @@ export const programUpsertSchema = z.object({
   careers: z.array(z.string()).default([]),
   highlights: z.array(z.string()).default([]),
   curriculum: z.array(z.array(z.string())).default([]),
+  applicationFee: z.number().nonnegative().default(500),
+  totalFee: z.number().nonnegative().default(0),
   status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']).default('PUBLISHED'),
 });
 
@@ -199,7 +201,8 @@ export const createAgentSchema = z.object({
   studentDiscountPercent: z.number().min(0).max(50).optional(),
   payoutDetails: z.string().max(1000).optional(),
   notes: z.string().max(1000).optional(),
-  password: z.string().min(8).regex(/[A-Z]/).regex(/[a-z]/).regex(/[0-9]/).optional(),
+  password: z.string().min(6).optional(),
+  temporaryPassword: z.string().min(6).optional(),
 });
 export type CreateAgentInput = z.infer<typeof createAgentSchema>;
 
@@ -212,6 +215,7 @@ export const updateAgentSchema = z.object({
   studentDiscountPercent: z.number().min(0).max(50).optional(),
   payoutDetails: z.string().max(1000).optional(),
   notes: z.string().max(1000).optional(),
+  password: z.string().min(6).optional(),
 });
 export type UpdateAgentInput = z.infer<typeof updateAgentSchema>;
 

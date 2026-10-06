@@ -12,6 +12,15 @@ export const AgentsAdmin: React.FC<{ currentUser?: any }> = ({ currentUser }) =>
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [tabFilter, setTabFilter] = useState<'ALL' | 'ACTIVE' | 'PENDING_CONFIG'>('ALL');
+
+  const filteredAgents = React.useMemo(() => {
+    return agents.filter((ag) => {
+      if (tabFilter === 'ACTIVE' && ag.status !== 'ACTIVE') return false;
+      if (tabFilter === 'PENDING_CONFIG' && ag.isConfigured) return false;
+      return true;
+    });
+  }, [agents, tabFilter]);
 
   // Modals
   const [creating, setCreating] = useState(false);
@@ -94,6 +103,10 @@ export const AgentsAdmin: React.FC<{ currentUser?: any }> = ({ currentUser }) =>
         payoutDetails: formData.payoutDetails.trim(),
       };
 
+      if (formData.temporaryPassword && formData.temporaryPassword.trim()) {
+        payload.password = formData.temporaryPassword.trim();
+      }
+
       if (isSuperAdmin) {
         payload.commissionPercent = Number(formData.commissionPercent);
         payload.studentDiscountPercent = Number(formData.studentDiscountPercent);
@@ -169,45 +182,228 @@ export const AgentsAdmin: React.FC<{ currentUser?: any }> = ({ currentUser }) =>
         </button>
       </div>
 
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          style={{
-            border: '1px solid #dcd8d3',
-            borderRadius: '8px',
-            padding: '10px 14px',
-            fontSize: '13px',
-            background: '#fff',
-          }}
-        >
-          <option value="">All Statuses</option>
-          <option value="ACTIVE">Active</option>
-          <option value="INACTIVE">Inactive</option>
-          <option value="SUSPENDED">Suspended</option>
-        </select>
+      {/* COMBINED SEGMENT & FILTER TOOLBAR */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
+          marginBottom: '16px',
+        }}
+      >
+        {/* LEFT: Category Segment Pills */}
+        <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
+          <button
+            type="button"
+            onClick={() => {
+              setTabFilter('ALL');
+              setStatusFilter('');
+            }}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '20px',
+              border: 'none',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              background: tabFilter === 'ALL' ? '#1b365d' : '#f1f5f9',
+              color: tabFilter === 'ALL' ? '#ffffff' : '#475569',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <span>All Partners</span>
+            <span
+              style={{
+                fontSize: '11px',
+                padding: '1px 6px',
+                borderRadius: '10px',
+                background: tabFilter === 'ALL' ? 'rgba(255,255,255,0.22)' : '#e2e8f0',
+                color: tabFilter === 'ALL' ? '#fff' : '#64748b',
+                fontWeight: 700,
+              }}
+            >
+              {agents.length}
+            </span>
+          </button>
 
-        <input
-          type="text"
-          placeholder="Filter by agent name, email, or promo code..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{
-            border: '1px solid #dcd8d3',
-            borderRadius: '8px',
-            padding: '10px 16px',
-            width: '320px',
-            fontSize: '13px',
-          }}
-        />
+          <button
+            type="button"
+            onClick={() => {
+              setTabFilter('ACTIVE');
+              setStatusFilter('ACTIVE');
+            }}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '20px',
+              border: 'none',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              background: tabFilter === 'ACTIVE' ? '#16a34a' : '#f1f5f9',
+              color: tabFilter === 'ACTIVE' ? '#ffffff' : '#475569',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <span>Active</span>
+            <span
+              style={{
+                fontSize: '11px',
+                padding: '1px 6px',
+                borderRadius: '10px',
+                background: tabFilter === 'ACTIVE' ? 'rgba(255,255,255,0.22)' : '#e2e8f0',
+                color: tabFilter === 'ACTIVE' ? '#fff' : '#64748b',
+                fontWeight: 700,
+              }}
+            >
+              {agents.filter((a) => a.status === 'ACTIVE').length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setTabFilter('PENDING_CONFIG');
+              setStatusFilter('');
+            }}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '20px',
+              border: 'none',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              background: tabFilter === 'PENDING_CONFIG' ? '#d97706' : '#f1f5f9',
+              color: tabFilter === 'PENDING_CONFIG' ? '#ffffff' : '#475569',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <span>Pending Rate Review</span>
+            <span
+              style={{
+                fontSize: '11px',
+                padding: '1px 6px',
+                borderRadius: '10px',
+                background: tabFilter === 'PENDING_CONFIG' ? 'rgba(255,255,255,0.25)' : '#e2e8f0',
+                color: tabFilter === 'PENDING_CONFIG' ? '#fff' : '#64748b',
+                fontWeight: 700,
+              }}
+            >
+              {agents.filter((a) => !a.isConfigured).length}
+            </span>
+          </button>
+        </div>
+
+        {/* RIGHT: Compact Inline Filters (Search + Status + Clear) */}
+        <div className="admin-toolbar-filter">
+          <div style={{ position: 'relative', width: '240px' }}>
+            <span
+              style={{
+                position: 'absolute',
+                left: '10px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#94a3b8',
+                pointerEvents: 'none',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <Icon name="search" size={14} />
+            </span>
+            <input
+              type="text"
+              placeholder="Search partner, email, code..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                style={{
+                  position: 'absolute',
+                  right: '8px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#94a3b8',
+                  padding: 0,
+                  display: 'flex',
+                }}
+              >
+                <Icon name="close" size={14} />
+              </button>
+            )}
+          </div>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              const val = e.target.value;
+              setStatusFilter(val);
+              if (val === 'ACTIVE') setTabFilter('ACTIVE');
+              else if (val) setTabFilter('ALL');
+            }}
+          >
+            <option value="">All Statuses</option>
+            <option value="ACTIVE">Active Only</option>
+            <option value="INACTIVE">Inactive Only</option>
+            <option value="SUSPENDED">Suspended Only</option>
+          </select>
+
+          {(search || statusFilter || tabFilter !== 'ALL') && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearch('');
+                setStatusFilter('');
+                setTabFilter('ALL');
+              }}
+              style={{
+                background: '#fee2e2',
+                border: '1px solid #fca5a5',
+                borderRadius: '8px',
+                color: '#b91c1c',
+                cursor: 'pointer',
+                fontSize: '12px',
+                fontWeight: 600,
+                padding: '0 10px',
+                height: '36px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <Icon name="close" size={13} /> Clear
+            </button>
+          )}
+
+          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 500, marginLeft: '4px' }}>
+            ({filteredAgents.length})
+          </span>
+        </div>
       </div>
 
       <div className="admin-card">
         {loading ? (
           <div>Loading agents directory...</div>
-        ) : agents.length === 0 ? (
+        ) : filteredAgents.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '48px', color: '#777' }}>
-            No agents found. Click "Create New Agent" to onboard a referral partner.
+            No agents found matching the selected filter criteria.
           </div>
         ) : (
           <div className="table-responsive">
@@ -224,7 +420,7 @@ export const AgentsAdmin: React.FC<{ currentUser?: any }> = ({ currentUser }) =>
                 </tr>
               </thead>
               <tbody>
-                {agents.map((ag) => (
+                {filteredAgents.map((ag) => (
                   <tr key={ag.id}>
                     <td>
                       <strong>{ag.name}</strong>
@@ -283,7 +479,7 @@ export const AgentsAdmin: React.FC<{ currentUser?: any }> = ({ currentUser }) =>
 
       {/* CREATE MODAL */}
       {creating && (
-        <Dialog open={true} onClose={() => setCreating(false)} label="Create Referral Agent" className="workspace-editor">
+        <Dialog open={true} onClose={() => setCreating(false)} label="Create Referral Agent" className="workspace-editor" preventBackdropClose={true} preventEscapeClose={true}>
           <div className="workspace-editor-body">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div>
@@ -464,7 +660,7 @@ export const AgentsAdmin: React.FC<{ currentUser?: any }> = ({ currentUser }) =>
 
       {/* EDIT MODAL */}
       {editingAgent && (
-        <Dialog open={true} onClose={() => setEditingAgent(null)} label="Edit Referral Agent" className="workspace-editor">
+        <Dialog open={true} onClose={() => setEditingAgent(null)} label="Edit Referral Agent" className="workspace-editor" preventBackdropClose={true} preventEscapeClose={true}>
           <div className="workspace-editor-body">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div>
@@ -495,6 +691,21 @@ export const AgentsAdmin: React.FC<{ currentUser?: any }> = ({ currentUser }) =>
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   />
+                </label>
+              </div>
+
+              <div style={{ marginTop: '16px', marginBottom: '16px' }}>
+                <label>
+                  Reset Login Password (Optional)
+                  <input
+                    type="password"
+                    placeholder="Leave blank to keep existing password"
+                    value={formData.temporaryPassword}
+                    onChange={(e) => setFormData({ ...formData, temporaryPassword: e.target.value })}
+                  />
+                  <small style={{ color: '#888', display: 'block', marginTop: '4px' }}>
+                    Enter 6+ characters to update or reset the agent's login password.
+                  </small>
                 </label>
               </div>
 

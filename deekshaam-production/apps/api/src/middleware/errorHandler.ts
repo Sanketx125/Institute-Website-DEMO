@@ -16,6 +16,16 @@ export function errorHandler(err: any, req: Request, res: Response, next: NextFu
     });
   }
 
+  if (err.name === 'MulterError' || (err.message && (err.message.includes('format') || err.message.includes('extension mismatch') || err.message.includes('file type')))) {
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: 'UPLOAD_ERROR',
+        message: err.message || 'File upload validation failed',
+      },
+    });
+  }
+
   const statusCode = err.status || err.statusCode || 500;
   const message = err.message || 'Internal server error occurred';
   const code = err.code || (statusCode === 404 ? 'NOT_FOUND' : 'INTERNAL_ERROR');

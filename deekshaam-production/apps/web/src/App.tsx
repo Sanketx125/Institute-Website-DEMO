@@ -98,9 +98,9 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Check auth for admin routes
+  // Check auth for admin and staff routes
   useEffect(() => {
-    if (currentPath.startsWith('/admin')) {
+    if (currentPath.startsWith('/admin') || ['/login', '/staff', '/staff-login', '/portal'].includes(currentPath)) {
       const token = getAuthToken();
       setAuthTokenState(token);
       if (token) {
@@ -128,25 +128,35 @@ export const App: React.FC = () => {
 
   // Route Dispatcher
   const renderContent = () => {
-    // Admin Routes
-    if (currentPath.startsWith('/admin')) {
+    const isLoginRoute = ['/login', '/staff', '/staff-login', '/portal', '/admin/login'].includes(currentPath);
+
+    // Admin & Staff Workspace Routes
+    if (currentPath.startsWith('/admin') || isLoginRoute) {
       if (authChecking && !currentUser) return <div className="workspace-loading" role="status">Opening your workspace...</div>;
       const isAuthed = Boolean(authToken && currentUser);
-      if (currentPath === '/admin/login' || !isAuthed) {
+
+      if (isLoginRoute || !isAuthed) {
+        if (isAuthed && isLoginRoute) {
+          const target = currentUser?.role === 'AGENT' ? '/admin/agent-dashboard' : '/admin/dashboard';
+          navigate(target);
+          return null;
+        }
         return (
           <AdminLogin
             onLoginSuccess={(user) => {
               const token = getAuthToken();
               setAuthTokenState(token);
               if (user) setCurrentUser(user);
-              navigate('/admin/dashboard');
+              const target = user?.role === 'AGENT' ? '/admin/agent-dashboard' : '/admin/dashboard';
+              navigate(target);
             }}
             onNavigate={navigate}
           />
         );
       }
 
-      const selectedTab = canAccess(currentUser?.role, adminTab) ? adminTab : 'dashboard';
+      const defaultTab = currentUser?.role === 'AGENT' ? 'agent-dashboard' : 'dashboard';
+      const selectedTab = canAccess(currentUser?.role, adminTab) ? adminTab : defaultTab;
       return (
         <AdminFeedbackProvider><AdminLayout
           currentTab={selectedTab}

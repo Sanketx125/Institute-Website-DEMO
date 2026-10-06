@@ -33,32 +33,56 @@ const privateStorage = multer.diskStorage({
   },
 });
 
-const allowedMimeTypes = [
+const MIME_TO_EXTENSIONS: Record<string, string[]> = {
+  'image/jpeg': ['.jpg', '.jpeg'],
+  'image/png': ['.png'],
+  'image/webp': ['.webp'],
+  'image/svg+xml': ['.svg'],
+  'application/pdf': ['.pdf'],
+  'application/msword': ['.doc'],
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+};
+
+const publicAllowedMimeTypes = Object.keys(MIME_TO_EXTENSIONS);
+
+// Private applicant documents (marksheets, ID proofs) strictly forbid SVGs to eliminate stored XSS vectors
+const privateAllowedMimeTypes = [
+  'application/pdf',
   'image/jpeg',
   'image/png',
   'image/webp',
-  'image/svg+xml',
-  'application/pdf',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ];
 
-const fileFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  if (allowedMimeTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error(`Unsupported file format (${file.mimetype}). Only PDF, DOCX, and JPG/PNG/WEBP images are allowed.`));
+const publicFileFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  const ext = path.extname(file.originalname).toLowerCase();
+  const validExtensions = MIME_TO_EXTENSIONS[file.mimetype];
+
+  if (!publicAllowedMimeTypes.includes(file.mimetype) || !validExtensions || !validExtensions.includes(ext)) {
+    return cb(new Error(`Invalid file type or extension mismatch. Declared ${file.mimetype} with extension ${ext}.`));
   }
+  cb(null, true);
+};
+
+const privateFileFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  const ext = path.extname(file.originalname).toLowerCase();
+  const validExtensions = MIME_TO_EXTENSIONS[file.mimetype];
+
+  if (!privateAllowedMimeTypes.includes(file.mimetype) || !validExtensions || !validExtensions.includes(ext)) {
+    return cb(new Error(`Unsupported applicant document format. Only PDF, DOCX, and JPG/PNG/WEBP images are allowed.`));
+  }
+  cb(null, true);
 };
 
 export const uploadPublicMedia = multer({
   storage: publicStorage,
   limits: { fileSize: config.storage.maxFileSizeMB * 1024 * 1024 },
-  fileFilter,
+  fileFilter: publicFileFilter,
 });
 
 export const uploadPrivateDocument = multer({
   storage: privateStorage,
   limits: { fileSize: config.storage.maxFileSizeMB * 1024 * 1024 },
-  fileFilter,
+  fileFilter: privateFileFilter,
 });

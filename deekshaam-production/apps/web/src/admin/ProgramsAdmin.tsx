@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Dialog } from '../components/Dialog';
 import { SiteImage } from '../components/SiteImage';
 import { useAdminFeedback } from './AdminFeedback';
@@ -15,13 +15,16 @@ const PRESET_IMAGES = [
 
 export const ProgramsAdmin: React.FC = () => {
   const notify = useAdminFeedback();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [programs, setPrograms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
   const [slugEditedByUser, setSlugEditedByUser] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [showAdvancedSlug, setShowAdvancedSlug] = useState(false);
   const [deleteItem, setDeleteItem] = useState<any | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -55,8 +58,19 @@ export const ProgramsAdmin: React.FC = () => {
       .replace(/^-+|-+$/g, '');
   };
 
+  const handleCloseModal = () => {
+    if (isDirty) {
+      if (!window.confirm('You have unsaved changes in this academic program. Are you sure you want to discard them?')) {
+        return;
+      }
+    }
+    setEditingProgram(null);
+    setIsDirty(false);
+  };
+
   const openCreateModal = () => {
     setSlugEditedByUser(false);
+    setIsDirty(false);
     setFormError(null);
     setSpecializationsStr('Artificial Intelligence, Data Analytics, Cloud Computing');
     setCareersStr('Software Engineer, Systems Analyst, Tech Consultant');
@@ -71,6 +85,8 @@ export const ProgramsAdmin: React.FC = () => {
       eligibility: '10+2 from recognized board; minimum 50% aggregate (45% for SC/ST/OBC).',
       summary: 'Comprehensive undergraduate degree program emphasizing hands-on project work, analytical problem-solving, and career readiness.',
       image: '/images/BCA.webp',
+      applicationFee: 500,
+      totalFee: 240000,
       specializations: ['Artificial Intelligence', 'Data Analytics', 'Cloud Computing'],
       careers: ['Software Engineer', 'Systems Analyst', 'Tech Consultant'],
       highlights: [],
@@ -81,6 +97,7 @@ export const ProgramsAdmin: React.FC = () => {
 
   const openEditModal = (p: any) => {
     setSlugEditedByUser(true);
+    setIsDirty(false);
     setFormError(null);
     const specs = Array.isArray(p.specializations)
       ? p.specializations.join(', ')
@@ -98,11 +115,14 @@ export const ProgramsAdmin: React.FC = () => {
       ...p,
       isNew: false,
       image: p.image || '/images/BCA.webp',
+      applicationFee: p.applicationFee !== undefined ? Number(p.applicationFee) : 500,
+      totalFee: p.totalFee !== undefined ? Number(p.totalFee) : 0,
     });
   };
 
   const handleTitleChange = (val: string) => {
     if (!editingProgram) return;
+    setIsDirty(true);
     const next: any = { ...editingProgram, title: val };
     if (editingProgram.isNew && !slugEditedByUser) {
       next.slug = slugify(val || editingProgram.code);
@@ -112,6 +132,7 @@ export const ProgramsAdmin: React.FC = () => {
 
   const handleCodeChange = (val: string) => {
     if (!editingProgram) return;
+    setIsDirty(true);
     const next: any = { ...editingProgram, code: val };
     if (editingProgram.isNew && !slugEditedByUser && !editingProgram.title) {
       next.slug = slugify(val);
@@ -132,6 +153,7 @@ export const ProgramsAdmin: React.FC = () => {
     setFormError(null);
     try {
       const media = await api.uploadMedia(formData);
+      setIsDirty(true);
       setEditingProgram((prev: any) => ({ ...prev, image: media.url }));
       notify('Program banner image uploaded successfully.');
     } catch (err: any) {
@@ -150,7 +172,7 @@ export const ProgramsAdmin: React.FC = () => {
     setFormError(null);
 
     const cleanCode = (editingProgram.code || '').trim().toUpperCase();
-    const cleanSlug = (editingProgram.slug || '').trim().toLowerCase();
+    let cleanSlug = (editingProgram.slug || '').trim().toLowerCase();
     const cleanTitle = (editingProgram.title || '').trim();
     const cleanKicker = (editingProgram.kicker || '').trim();
     const cleanDuration = (editingProgram.duration || '3 years').trim();
@@ -158,14 +180,17 @@ export const ProgramsAdmin: React.FC = () => {
     const cleanEligibility = (editingProgram.eligibility || '').trim();
     const cleanSummary = (editingProgram.summary || '').trim();
     const cleanImage = (editingProgram.image || '/images/BCA.webp').trim();
+    const appFee = Number(editingProgram.applicationFee);
+    const totFee = Number(editingProgram.totalFee);
+
+    // Auto-derive slug if missing or too short so non-technical staff are never blocked
+    if (!cleanSlug || cleanSlug.length < 2) {
+      cleanSlug = slugify(cleanCode || cleanTitle || 'program');
+    }
 
     // Client-side validations
     if (cleanCode.length < 2) {
       setFormError('Program code must be at least 2 characters (e.g. BCA, BBA).');
-      return;
-    }
-    if (cleanSlug.length < 2) {
-      setFormError('URL Slug must be at least 2 characters.');
       return;
     }
     if (cleanTitle.length < 3) {
@@ -178,6 +203,14 @@ export const ProgramsAdmin: React.FC = () => {
     }
     if (cleanEligibility.length < 5) {
       setFormError('Eligibility criteria must be at least 5 characters.');
+      return;
+    }
+    if (isNaN(appFee) || appFee < 0) {
+      setFormError('Application processing fee must be a valid non-negative amount in ₹.');
+      return;
+    }
+    if (isNaN(totFee) || totFee < 0) {
+      setFormError('Total program course fee must be a valid non-negative amount in ₹.');
       return;
     }
 
@@ -201,6 +234,8 @@ export const ProgramsAdmin: React.FC = () => {
       eligibility: cleanEligibility,
       summary: cleanSummary,
       image: cleanImage,
+      applicationFee: appFee,
+      totalFee: totFee,
       specializations,
       careers,
       highlights: Array.isArray(editingProgram.highlights) ? editingProgram.highlights : [],
@@ -216,6 +251,7 @@ export const ProgramsAdmin: React.FC = () => {
         await api.createProgram(payload);
         notify(`Program "${cleanCode}" created successfully.`);
       }
+      setIsDirty(false);
       setEditingProgram(null);
       fetchPrograms();
     } catch (err: any) {
@@ -341,6 +377,10 @@ export const ProgramsAdmin: React.FC = () => {
                       <div>
                         <strong style={{ display: 'block', fontSize: '13px' }}>{p.title}</strong>
                         {p.kicker && <small style={{ color: '#64748b', fontSize: '12px' }}>{p.kicker}</small>}
+                        <div style={{ fontSize: '11px', color: '#1e3a8a', marginTop: '3px', fontWeight: 600 }}>
+                          App Fee: ₹{p.applicationFee !== undefined ? p.applicationFee : 500}
+                          {p.totalFee ? ` · Total Course: ₹${Number(p.totalFee).toLocaleString('en-IN')}` : ''}
+                        </div>
                       </div>
                     </td>
                     <td>
@@ -406,7 +446,9 @@ export const ProgramsAdmin: React.FC = () => {
       {editingProgram && (
         <Dialog
           open={true}
-          onClose={() => setEditingProgram(null)}
+          onClose={handleCloseModal}
+          preventBackdropClose={true}
+          preventEscapeClose={true}
           label={editingProgram.isNew ? 'Create New Program' : `Edit ${editingProgram.code}`}
           className="workspace-editor"
         >
@@ -418,7 +460,7 @@ export const ProgramsAdmin: React.FC = () => {
                   {editingProgram.isNew ? 'Create New Academic Program' : `Edit Program: ${editingProgram.title || editingProgram.code}`}
                 </h2>
               </div>
-              <button className="icon-btn" onClick={() => setEditingProgram(null)}>
+              <button type="button" className="icon-btn" title="Close" onClick={handleCloseModal}>
                 <Icon name="close" size={20} />
               </button>
             </div>
@@ -455,23 +497,6 @@ export const ProgramsAdmin: React.FC = () => {
                 </label>
 
                 <label>
-                  URL Slug *
-                  <input
-                    type="text"
-                    required
-                    value={editingProgram.slug}
-                    onChange={(e) => {
-                      setSlugEditedByUser(true);
-                      setEditingProgram({ ...editingProgram, slug: e.target.value });
-                    }}
-                    placeholder="e.g. bca, bba-business-analytics"
-                  />
-                  <small style={{ color: '#64748b' }}>Web link path: /academics/{editingProgram.slug || 'slug'}</small>
-                </label>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-                <label>
                   Full Program Title *
                   <input
                     type="text"
@@ -480,17 +505,140 @@ export const ProgramsAdmin: React.FC = () => {
                     onChange={(e) => handleTitleChange(e.target.value)}
                     placeholder="e.g. Bachelor of Computer Applications"
                   />
+                  <small style={{ color: '#64748b' }}>Official academic degree title</small>
                 </label>
+              </div>
 
+              {/* AUTOMATIC WEB LINK WITH OPTIONAL ADVANCED CUSTOMISATION */}
+              <div
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  padding: '10px 14px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                  fontSize: '12px',
+                  color: '#475569',
+                  marginBottom: '16px',
+                }}
+              >
+                <div>
+                  <span style={{ fontWeight: 600, color: '#0f172a' }}>Web Address: </span>
+                  <code style={{ background: '#e2e8f0', padding: '2px 6px', borderRadius: '4px' }}>
+                    /academics/{editingProgram.slug || slugify(editingProgram.code || editingProgram.title || 'program')}
+                  </code>
+                  <span style={{ color: '#059669', marginLeft: '6px', fontWeight: 600 }}>✓ Auto-generated</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAdvancedSlug(!showAdvancedSlug)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#0f766e',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    textDecoration: 'underline',
+                  }}
+                >
+                  {showAdvancedSlug ? 'Hide custom link' : 'Customise web link (optional)'}
+                </button>
+              </div>
+
+              {showAdvancedSlug && (
+                <div style={{ marginBottom: '16px' }}>
+                  <label>
+                    Custom Web Link Slug
+                    <input
+                      type="text"
+                      value={editingProgram.slug}
+                      onChange={(e) => {
+                        setSlugEditedByUser(true);
+                        setIsDirty(true);
+                        setEditingProgram({ ...editingProgram, slug: e.target.value });
+                      }}
+                      placeholder="e.g. bca, bba-business-analytics"
+                    />
+                    <small style={{ color: '#64748b' }}>Web link path: /academics/{editingProgram.slug || 'slug'}</small>
+                  </label>
+                </div>
+              )}
+
+              <div style={{ marginBottom: '16px' }}>
                 <label>
                   Tagline / Kicker
                   <input
                     type="text"
                     value={editingProgram.kicker}
-                    onChange={(e) => setEditingProgram({ ...editingProgram, kicker: e.target.value })}
+                    onChange={(e) => {
+                      setIsDirty(true);
+                      setEditingProgram({ ...editingProgram, kicker: e.target.value });
+                    }}
                     placeholder="e.g. Software, data, cloud and intelligent systems"
                   />
                 </label>
+              </div>
+
+              {/* SECTION: FEE CONFIGURATION (SUPER ADMIN DECIDED) */}
+              <div
+                style={{
+                  background: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  borderRadius: '10px',
+                  padding: '16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  margin: '12px 0',
+                }}
+              >
+                <div>
+                  <strong style={{ fontSize: '13px', color: '#166534' }}>Fee Configuration (Super Admin Controlled)</strong>
+                  <div style={{ fontSize: '12px', color: '#475569' }}>
+                    Set the official application processing fee charged to students during online checkout and total degree course fee.
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+                  <label style={{ margin: 0 }}>
+                    Application Processing Fee (₹) *
+                    <input
+                      type="number"
+                      min="0"
+                      step="50"
+                      required
+                      value={editingProgram.applicationFee !== undefined ? editingProgram.applicationFee : 500}
+                      onChange={(e) => {
+                        setIsDirty(true);
+                        setEditingProgram({ ...editingProgram, applicationFee: Number(e.target.value) });
+                      }}
+                      placeholder="e.g. 500 or 750"
+                    />
+                    <small style={{ color: '#64748b' }}>Actual charge applied when student applies online (discounts apply on this)</small>
+                  </label>
+
+                  <label style={{ margin: 0 }}>
+                    Total Degree / Course Fee (₹) *
+                    <input
+                      type="number"
+                      min="0"
+                      step="5000"
+                      required
+                      value={editingProgram.totalFee !== undefined ? editingProgram.totalFee : 0}
+                      onChange={(e) => {
+                        setIsDirty(true);
+                        setEditingProgram({ ...editingProgram, totalFee: Number(e.target.value) });
+                      }}
+                      placeholder="e.g. 240000"
+                    />
+                    <small style={{ color: '#64748b' }}>Total institutional degree fee across all semesters displayed to prospective students</small>
+                  </label>
+                </div>
               </div>
 
               {/* SECTION: IMAGE & BANNER */}
@@ -554,26 +702,33 @@ export const ProgramsAdmin: React.FC = () => {
                       <input
                         type="text"
                         value={editingProgram.image}
-                        onChange={(e) => setEditingProgram({ ...editingProgram, image: e.target.value })}
+                        onChange={(e) => {
+                          setIsDirty(true);
+                          setEditingProgram({ ...editingProgram, image: e.target.value });
+                        }}
                         placeholder="/images/BCA.webp or https://..."
                       />
                     </label>
 
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                      <label
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        disabled={uploadingImage}
+                        onChange={handleImageUpload}
+                      />
+                      <button
+                        type="button"
                         className="btn btn-secondary small"
                         style={{ margin: 0, width: 'auto', cursor: uploadingImage ? 'wait' : 'pointer' }}
+                        disabled={uploadingImage}
+                        onClick={() => fileInputRef.current?.click()}
                       >
                         <Icon name="arrow" size={14} />
                         {uploadingImage ? 'Uploading Image...' : 'Upload Image File'}
-                        <input
-                          type="file"
-                          accept="image/*"
-                          style={{ display: 'none' }}
-                          disabled={uploadingImage}
-                          onChange={handleImageUpload}
-                        />
-                      </label>
+                      </button>
                       <small style={{ color: '#64748b' }}>JPG, PNG or WebP</small>
                     </div>
                   </div>
@@ -589,7 +744,10 @@ export const ProgramsAdmin: React.FC = () => {
                       <button
                         key={preset.url}
                         type="button"
-                        onClick={() => setEditingProgram({ ...editingProgram, image: preset.url })}
+                        onClick={() => {
+                          setIsDirty(true);
+                          setEditingProgram({ ...editingProgram, image: preset.url });
+                        }}
                         style={{
                           background: editingProgram.image === preset.url ? '#1e3a8a' : '#ffffff',
                           color: editingProgram.image === preset.url ? '#ffffff' : '#334155',
@@ -616,7 +774,10 @@ export const ProgramsAdmin: React.FC = () => {
                     type="text"
                     required
                     value={editingProgram.duration}
-                    onChange={(e) => setEditingProgram({ ...editingProgram, duration: e.target.value })}
+                    onChange={(e) => {
+                      setIsDirty(true);
+                      setEditingProgram({ ...editingProgram, duration: e.target.value });
+                    }}
                     placeholder="e.g. 3 years (6 Semesters)"
                   />
                 </label>
@@ -627,7 +788,10 @@ export const ProgramsAdmin: React.FC = () => {
                     type="text"
                     required
                     value={editingProgram.mode}
-                    onChange={(e) => setEditingProgram({ ...editingProgram, mode: e.target.value })}
+                    onChange={(e) => {
+                      setIsDirty(true);
+                      setEditingProgram({ ...editingProgram, mode: e.target.value });
+                    }}
                     placeholder="e.g. Classroom learning"
                   />
                 </label>
@@ -639,7 +803,10 @@ export const ProgramsAdmin: React.FC = () => {
                   type="text"
                   required
                   value={editingProgram.eligibility}
-                  onChange={(e) => setEditingProgram({ ...editingProgram, eligibility: e.target.value })}
+                  onChange={(e) => {
+                    setIsDirty(true);
+                    setEditingProgram({ ...editingProgram, eligibility: e.target.value });
+                  }}
                   placeholder="e.g. 10+2 from recognized board; minimum 50% aggregate"
                 />
                 <small style={{ color: '#64748b' }}>Admission prerequisites (min 5 characters)</small>
@@ -651,7 +818,10 @@ export const ProgramsAdmin: React.FC = () => {
                   rows={3}
                   required
                   value={editingProgram.summary}
-                  onChange={(e) => setEditingProgram({ ...editingProgram, summary: e.target.value })}
+                  onChange={(e) => {
+                    setIsDirty(true);
+                    setEditingProgram({ ...editingProgram, summary: e.target.value });
+                  }}
                   placeholder="Detailed overview explaining syllabus highlights, learning outcomes, and career benefits..."
                 />
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748b' }}>
@@ -669,7 +839,10 @@ export const ProgramsAdmin: React.FC = () => {
                   <input
                     type="text"
                     value={specializationsStr}
-                    onChange={(e) => setSpecializationsStr(e.target.value)}
+                    onChange={(e) => {
+                      setIsDirty(true);
+                      setSpecializationsStr(e.target.value);
+                    }}
                     placeholder="e.g. AI & ML, Data Analytics, Cloud Computing"
                   />
                   <small style={{ color: '#64748b' }}>Separate distinct tracks with commas</small>
@@ -680,7 +853,10 @@ export const ProgramsAdmin: React.FC = () => {
                   <input
                     type="text"
                     value={careersStr}
-                    onChange={(e) => setCareersStr(e.target.value)}
+                    onChange={(e) => {
+                      setIsDirty(true);
+                      setCareersStr(e.target.value);
+                    }}
                     placeholder="e.g. Software Engineer, Web Developer, IT Consultant"
                   />
                   <small style={{ color: '#64748b' }}>Separate career roles with commas</small>
@@ -691,7 +867,10 @@ export const ProgramsAdmin: React.FC = () => {
                 Catalog Visibility Status
                 <select
                   value={editingProgram.status || 'PUBLISHED'}
-                  onChange={(e) => setEditingProgram({ ...editingProgram, status: e.target.value })}
+                  onChange={(e) => {
+                    setIsDirty(true);
+                    setEditingProgram({ ...editingProgram, status: e.target.value });
+                  }}
                 >
                   <option value="PUBLISHED">Published (Visible on public website and admissions)</option>
                   <option value="DRAFT">Draft (Under review, hidden from public)</option>
@@ -700,7 +879,7 @@ export const ProgramsAdmin: React.FC = () => {
               </label>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '12px' }}>
-                <button type="button" className="btn btn-ghost" onClick={() => setEditingProgram(null)}>
+                <button type="button" className="btn btn-ghost" onClick={handleCloseModal}>
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary" disabled={uploadingImage}>

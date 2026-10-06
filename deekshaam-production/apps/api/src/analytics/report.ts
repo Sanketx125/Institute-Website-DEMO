@@ -53,9 +53,19 @@ interface Session {
 
 const emptyFlags = (): Flags => ({ viewed: false, started: false, personal: false, program: false, academic: false, submitted: false, paid: false });
 
+const getEventTs = (e: any): number => {
+  if (typeof e.ts === 'number' && !isNaN(e.ts) && e.ts > 0) return e.ts;
+  if (e.timestamp) {
+    const parsed = Date.parse(e.timestamp);
+    if (!isNaN(parsed) && parsed > 0) return parsed;
+  }
+  return Date.now();
+};
+
 export function buildSessions(events: StoredEvent[]): Session[] {
   const map = new Map<string, Session>();
-  for (const e of [...events].sort((a, b) => a.ts - b.ts)) {
+  const normalizedEvents = events.map((e) => ({ ...e, ts: getEventTs(e) }));
+  for (const e of normalizedEvents.sort((a, b) => a.ts - b.ts)) {
     const id = e.sessionId || e.visitorId;
     let s = map.get(id);
     if (!s) {
@@ -122,8 +132,19 @@ export function buildReport(events: StoredEvent[], apps: any[], leads: any[], pr
   const all = buildSessions(events);
   const cur = all.filter((s) => inRange(s.t0, from, now));
   const prev = all.filter((s) => inRange(s.t0, prevFrom, from));
-  const appsIn = (a: number, b: number) => apps.filter((x) => inRange(Date.parse(x.submittedAt || x.createdAt), a, b));
-  const leadsIn = (a: number, b: number) => leads.filter((x) => inRange(Date.parse(x.createdAt), a, b));
+  const parseSafeDate = (val?: string) => {
+    if (!val) return 0;
+    const parsed = Date.parse(val);
+    return isNaN(parsed) ? 0 : parsed;
+  };
+  const appsIn = (a: number, b: number) => apps.filter((x) => {
+    const t = parseSafeDate(x.submittedAt || x.createdAt);
+    return t > 0 && inRange(t, a, b);
+  });
+  const leadsIn = (a: number, b: number) => leads.filter((x) => {
+    const t = parseSafeDate(x.createdAt);
+    return t > 0 && inRange(t, a, b);
+  });
   const curApps = appsIn(from, now), prevApps = appsIn(prevFrom, from);
   const curLeads = leadsIn(from, now), prevLeads = leadsIn(prevFrom, from);
 
@@ -138,13 +159,17 @@ export function buildReport(events: StoredEvent[], apps: any[], leads: any[], pr
   const buckets = 8;
   const series = (items: { t: number }[]) => {
     const out = new Array(buckets).fill(0);
-    for (const it of items) out[Math.min(buckets - 1, Math.floor(((it.t - from) / (now - from)) * buckets))]++;
+    for (const it of items) {
+      if (typeof it.t === 'number' && !isNaN(it.t) && isFinite(it.t)) {
+        out[Math.min(buckets - 1, Math.max(0, Math.floor(((it.t - from) / (now - from)) * buckets)))]++;
+      }
+    }
     return out;
   };
   const sVisitors = series(cur.map((s) => ({ t: s.t0 })));
   const sStarts = series(cur.filter((s) => s.startedAt).map((s) => ({ t: s.startedAt! })));
-  const sSubs = series(curApps.map((a) => ({ t: Date.parse(a.submittedAt || a.createdAt) })));
-  const sLeads = series(curLeads.map((l) => ({ t: Date.parse(l.createdAt) })));
+  const sSubs = series(curApps.map((a) => ({ t: parseSafeDate(a.submittedAt || a.createdAt) || now })));
+  const sLeads = series(curLeads.map((l) => ({ t: parseSafeDate(l.createdAt) || now })));
   const sRate = sSubs.map((v, i) => (sStarts[i] ? Math.round((v / sStarts[i]) * 100) : 0));
 
   const kpis = [
@@ -220,7 +245,7 @@ export function buildReport(events: StoredEvent[], apps: any[], leads: any[], pr
       weekly: {
         views: weekly(sessionsHere.flatMap((s) => (s.progViews.has(p.slug) ? [s.t0] : []))),
         starts: weekly(sessionsHere.filter((s) => s.startedAt).map((s) => s.startedAt!)),
-        submitted: weekly(allApps.map((a) => Date.parse(a.submittedAt || a.createdAt))),
+        submitted: weekly(allApps.map((a) => parseSafeDate(a.submittedAt || a.createdAt) || now)),
       },
       funnel: FUNNEL.map((f, i) => ({ key: f.key, label: f.label, count: pf[i] })),
       areas: share(appsP, 'specialization'),
@@ -236,10 +261,13 @@ export function buildReport(events: StoredEvent[], apps: any[], leads: any[], pr
     };
   });
 
+  const validTs = events.map(getEventTs).filter((t) => typeof t === 'number' && !isNaN(t) && isFinite(t) && t > 0);
+  const trackingSince = validTs.length > 0 ? new Date(Math.min(...validTs)).toISOString() : null;
+
   const out = {
     range: rangeDays,
     generatedAt: new Date(now).toISOString(),
-    trackingSince: events.length ? new Date(Math.min(...events.map((e) => e.ts))).toISOString() : null,
+    trackingSince,
     sessions: cur.length,
     kpis,
     funnel: FUNNEL.map((f, i) => ({ key: f.key, label: f.label, count: funnel[i] })),

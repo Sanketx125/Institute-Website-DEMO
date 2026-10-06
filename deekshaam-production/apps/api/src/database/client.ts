@@ -83,7 +83,107 @@ class MemoryDatabase {
   public searchIndex: any[] = [];
   public analyticsEvents: any[] = [];
 
+  private dataFilePath(): string {
+    const root = findProjectRoot(__dirname);
+    return path.join(root, 'storage/data/app-data.json');
+  }
+
+  public loadFromFile() {
+    if (process.env.NODE_ENV === 'test' || process.env.DISABLE_FILE_PERSISTENCE === 'true') return;
+    try {
+      const filePath = this.dataFilePath();
+      if (fs.existsSync(filePath)) {
+        const raw = fs.readFileSync(filePath, 'utf8');
+        const data = JSON.parse(raw);
+        if (data.siteSettings) this.siteSettings = data.siteSettings;
+        if (Array.isArray(data.programs)) this.programs = data.programs;
+        if (Array.isArray(data.certifications)) this.certifications = data.certifications;
+        if (Array.isArray(data.jobs)) this.jobs = data.jobs;
+        if (Array.isArray(data.faculty)) this.faculty = data.faculty;
+        if (Array.isArray(data.news)) this.news = data.news;
+        if (Array.isArray(data.events)) this.events = data.events;
+        if (Array.isArray(data.notices)) this.notices = data.notices;
+        if (Array.isArray(data.gallery)) this.gallery = data.gallery;
+        if (Array.isArray(data.stories)) this.stories = data.stories;
+        if (Array.isArray(data.employers)) this.employers = data.employers;
+        if (Array.isArray(data.media)) this.media = data.media;
+        if (Array.isArray(data.videos)) this.videos = data.videos;
+        if (Array.isArray(data.applications)) this.applications = data.applications;
+        if (Array.isArray(data.applicationDocuments)) this.applicationDocuments = data.applicationDocuments;
+        if (Array.isArray(data.applicationStatusHistory)) this.applicationStatusHistory = data.applicationStatusHistory;
+        if (Array.isArray(data.leads)) this.leads = data.leads;
+        if (Array.isArray(data.leadHistory)) this.leadHistory = data.leadHistory;
+        if (Array.isArray(data.payments)) this.payments = data.payments;
+        if (Array.isArray(data.auditLogs)) this.auditLogs = data.auditLogs;
+        if (Array.isArray(data.agents)) this.agents = data.agents;
+        if (Array.isArray(data.agentCommissions)) this.agentCommissions = data.agentCommissions;
+        if (Array.isArray(data.agentPayouts)) this.agentPayouts = data.agentPayouts;
+        if (Array.isArray(data.agentAuditLogs)) this.agentAuditLogs = data.agentAuditLogs;
+        if (data.referralSettings) this.referralSettings = data.referralSettings;
+        if (Array.isArray(data.analyticsEvents)) this.analyticsEvents = data.analyticsEvents;
+
+        if (Array.isArray(data.users) && data.users.length > 0) {
+          this.users = data.users;
+          const adminUser = this.users.find((u: any) => u.id === 'usr-admin-1');
+          if (adminUser) {
+            adminUser.passwordHash = bcrypt.hashSync(requiredPassword('ADMIN_PASSWORD', 'super admin'), 10);
+          }
+          const staffUser = this.users.find((u: any) => u.id === 'usr-admissions-1');
+          if (staffUser) {
+            staffUser.passwordHash = bcrypt.hashSync(requiredPassword('STAFF_PASSWORD', 'admissions staff'), 10);
+          }
+        }
+      }
+    } catch (err: any) {
+      console.warn('[STORAGE] Failed to load data snapshot from disk, starting with defaults:', err.message);
+    }
+  }
+
+  public saveToFile() {
+    if (process.env.NODE_ENV === 'test' || process.env.DISABLE_FILE_PERSISTENCE === 'true') return;
+    try {
+      const filePath = this.dataFilePath();
+      const dir = path.dirname(filePath);
+      fs.mkdirSync(dir, { recursive: true });
+      const snapshot = {
+        siteSettings: this.siteSettings,
+        programs: this.programs,
+        certifications: this.certifications,
+        jobs: this.jobs,
+        faculty: this.faculty,
+        news: this.news,
+        events: this.events,
+        notices: this.notices,
+        gallery: this.gallery,
+        stories: this.stories,
+        employers: this.employers,
+        media: this.media,
+        videos: this.videos,
+        users: this.users,
+        applications: this.applications,
+        applicationDocuments: this.applicationDocuments,
+        applicationStatusHistory: this.applicationStatusHistory,
+        leads: this.leads,
+        leadHistory: this.leadHistory,
+        payments: this.payments,
+        auditLogs: this.auditLogs,
+        agents: this.agents,
+        agentCommissions: this.agentCommissions,
+        agentPayouts: this.agentPayouts,
+        agentAuditLogs: this.agentAuditLogs,
+        referralSettings: this.referralSettings,
+        analyticsEvents: this.analyticsEvents,
+      };
+      const tmpPath = `${filePath}.${Date.now()}-${Math.random().toString(36).slice(2, 6)}.tmp`;
+      fs.writeFileSync(tmpPath, JSON.stringify(snapshot, null, 2), 'utf8');
+      fs.renameSync(tmpPath, filePath);
+    } catch (err: any) {
+      console.error('[STORAGE] Failed to write data snapshot to disk:', err.message);
+    }
+  }
+
   constructor() {
+    this.loadFromFile();
     this.buildSearchIndex();
   }
 

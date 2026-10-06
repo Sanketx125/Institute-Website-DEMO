@@ -26,7 +26,7 @@ import { requireRole } from '../middleware/rbac';
 import { uploadPublicMedia } from '../middleware/upload';
 
 import { getVideos, updateVideos } from './videos.controller';
-import { listPublished, listForEditor, saveEditorialItem } from './editorial.controller';
+import { listPublished, listForEditor, saveEditorialItem, deleteEditorialItem } from './editorial.controller';
 import { getNotices, listNotices, createNotice, updateNotice } from './notices.controller';
 const router = Router();
 router.get('/videos', getVideos);
@@ -66,6 +66,9 @@ router.post('/gallery', authenticate, requireRole(['SUPER_ADMIN', 'CONTENT_ADMIN
 router.put('/gallery/:id', authenticate, requireRole(['SUPER_ADMIN', 'CONTENT_ADMIN']), saveEditorialItem('gallery'));
 router.post('/stories', authenticate, requireRole(['SUPER_ADMIN', 'CONTENT_ADMIN']), saveEditorialItem('stories'));
 router.put('/stories/:id', authenticate, requireRole(['SUPER_ADMIN', 'CONTENT_ADMIN']), saveEditorialItem('stories'));
+router.delete('/events/:id', authenticate, requireRole(['SUPER_ADMIN', 'CONTENT_ADMIN']), deleteEditorialItem('events'));
+router.delete('/gallery/:id', authenticate, requireRole(['SUPER_ADMIN', 'CONTENT_ADMIN']), deleteEditorialItem('gallery'));
+router.delete('/stories/:id', authenticate, requireRole(['SUPER_ADMIN', 'CONTENT_ADMIN']), deleteEditorialItem('stories'));
 
 // Media library
 router.get('/media', authenticate, requireRole(['SUPER_ADMIN', 'CONTENT_ADMIN']), listMedia);

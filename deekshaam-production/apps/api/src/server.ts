@@ -1,13 +1,13 @@
 import { app } from './app';
 import { config } from './config';
-import { checkDatabaseConnection } from './database/client';
+import { checkDatabaseConnection, memoryDb } from './database/client';
 
 export async function bootstrap() {
   const isConnected = await checkDatabaseConnection();
   if (isConnected) {
-    console.log('[DATABASE] PostgreSQL is reachable. Current API controllers still use temporary in-memory data; changes will be lost when this server stops.');
+    console.log('[DATABASE] PostgreSQL is connected.');
   } else {
-    console.log('[DATABASE] PostgreSQL is unavailable. Current API controllers use temporary in-memory data; changes will be lost when this server stops.');
+    console.log('[DATABASE] PostgreSQL is unavailable. File-backed persistent storage (storage/data/app-data.json) is active.');
   }
 
   const server = app.listen(config.port, () => {
@@ -22,6 +22,12 @@ export async function bootstrap() {
 
   const shutdown = () => {
     console.log('\nGracefully shutting down server...');
+    try {
+      memoryDb.saveToFile();
+      console.log('[STORAGE] Data snapshot saved to disk.');
+    } catch (err: any) {
+      console.error('[STORAGE] Error saving snapshot during shutdown:', err.message);
+    }
     server.close(() => {
       console.log('Server terminated cleanly.');
       process.exit(0);
@@ -30,6 +36,20 @@ export async function bootstrap() {
 
   process.on('SIGTERM', shutdown);
   process.on('SIGINT', shutdown);
+
+  process.on('unhandledRejection', (reason) => {
+    console.error('[CRITICAL] Unhandled promise rejection in server process:', reason);
+  });
+
+  process.on('uncaughtException', (error) => {
+    console.error('[CRITICAL] Uncaught exception in server process:', error);
+    try {
+      memoryDb.saveToFile();
+    } catch {
+      // ignore
+    }
+    process.exit(1);
+  });
 }
 
 if (require.main === module) {

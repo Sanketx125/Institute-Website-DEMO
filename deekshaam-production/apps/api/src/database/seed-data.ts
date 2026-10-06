@@ -102,6 +102,8 @@ export const programsSeed = [
       ['Income Tax II', 'Corporate Governance', 'Security Analysis / Advertising & Media', 'Financial Analysis / Digital Marketing', 'Negotiation Skills', 'Project Centric Learning III']
     ],
     status: 'PUBLISHED',
+    applicationFee: 500,
+    totalFee: 240000,
   },
   {
     slug: 'bca',
@@ -125,6 +127,8 @@ export const programsSeed = [
       ['OOAD and UML', 'Software Testing', 'Software Testing Lab', 'Introduction to Deep Learning', 'Project III']
     ],
     status: 'PUBLISHED',
+    applicationFee: 750,
+    totalFee: 270000,
   },
   {
     slug: 'bcom',
@@ -148,6 +152,8 @@ export const programsSeed = [
       ['Income Tax II', 'International Business', 'Digital Marketing / Advanced Financial Markets and Services', 'International Marketing / Corporate Finance', 'Atmosphere & Climate Change / Spoken Kannada', 'Negotiation Skills', 'Project Centric Learning III']
     ],
     status: 'PUBLISHED',
+    applicationFee: 500,
+    totalFee: 180000,
   }
 ];
 

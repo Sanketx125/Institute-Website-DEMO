@@ -128,7 +128,17 @@ export const AnalyticsAdmin: React.FC = () => {
 
   const programs: any[] = report.programs;
   const program = programs.find((p) => p.slug === view);
-  const since = report.trackingSince ? new Date(report.trackingSince).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : null;
+  let since: string | null = null;
+  if (report.trackingSince) {
+    try {
+      const d = new Date(report.trackingSince);
+      if (!isNaN(d.getTime())) {
+        since = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+      }
+    } catch {
+      since = null;
+    }
+  }
 
   return (
     <div className="analytics">

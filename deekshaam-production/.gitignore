@@ -20,6 +20,10 @@ storage/private-documents/*
 !storage/private-documents/.gitkeep
 storage/public-media/*
 !storage/public-media/.gitkeep
+storage/data/*
+!storage/data/.gitkeep
+storage/emails/*
+!storage/emails/.gitkeep
 
 # Logs
 logs

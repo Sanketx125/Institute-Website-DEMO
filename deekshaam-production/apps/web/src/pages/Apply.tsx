@@ -69,17 +69,40 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
     discountPercent: number;
     discountAmount: number;
     finalFee: number;
+    originalFee?: number;
+    totalCourseFee?: number;
     message?: string;
   } | null>(null);
   const [promoError, setPromoError] = useState<string | null>(null);
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoSectionOpen, setPromoSectionOpen] = useState(false);
+  const [promoSkipped, setPromoSkipped] = useState(false);
+  const [consentConfirmed, setConsentConfirmed] = useState(false);
 
   const [docFiles, setDocFiles] = useState<{
     marksheet10?: File;
     marksheet12?: File;
     photo?: File;
+    signature?: File;
   }>({});
+
+  const currentYear = new Date().getFullYear();
+  const maxDob = `${currentYear - 14}-12-31`;
+  const minDob = `${currentYear - 65}-01-01`;
+
+  const [programsList, setProgramsList] = useState<any[]>([]);
+
+  useEffect(() => {
+    api.getPrograms().then((progs) => setProgramsList(progs || [])).catch(() => {});
+  }, []);
+
+  const selectedProgram = programsList.find(
+    (p) => p.slug === formData.programSlug || p.code?.toLowerCase() === formData.programSlug.toLowerCase()
+  );
+  const currentAppFee = selectedProgram && typeof selectedProgram.applicationFee === 'number' && selectedProgram.applicationFee > 0
+    ? selectedProgram.applicationFee
+    : 500;
+  const currentTotalFee = selectedProgram?.totalFee || 0;
 
   const handleApplyPromo = async (codeToVerify?: string) => {
     const code = (codeToVerify || promoCodeInput).trim().toUpperCase();
@@ -94,6 +117,7 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
       const res = await api.validatePromoCode(code, formData.programSlug);
       setAppliedPromo(res);
       setPromoCodeInput(code);
+      setPromoSkipped(false);
       setPromoSectionOpen(true);
       showToast(`Promo code ${code} applied successfully!`);
     } catch (err: any) {
@@ -108,6 +132,7 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
     setAppliedPromo(null);
     setPromoCodeInput('');
     setPromoError(null);
+    setPromoSkipped(false);
     showToast('Promo code removed.');
   };
 
@@ -172,6 +197,12 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
         track('apply_error', { step: currentStep });
         return false;
       }
+    } else if (currentStep === 4) {
+      if (!consentConfirmed) {
+        showAlert('Please confirm and consent to the academic verification before continuing.', 'Consent Required', 'warning');
+        track('apply_error', { step: currentStep });
+        return false;
+      }
     }
     return true;
   };
@@ -184,7 +215,7 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
   const nextStep = () => {
     if (validateStep(step)) {
       track('apply_step', { action: 'complete', step, ...(step > 1 ? { program: formData.programSlug } : {}) });
-      setStep((prev) => Math.min(4, prev + 1));
+      setStep((prev) => Math.min(5, prev + 1));
     }
   };
 
@@ -194,7 +225,7 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateStep(3)) return;
+    if (!validateStep(1) || !validateStep(2) || !validateStep(3) || !validateStep(4)) return;
 
     setLoading(true);
     try {
@@ -228,33 +259,43 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
         fd.append('documentType', 'PHOTO');
         await api.uploadApplicantDocument(appData.id, fd, appData.accessToken);
       }
+      if (docFiles.signature) {
+        const fd = new FormData();
+        fd.append('document', docFiles.signature);
+        fd.append('documentType', 'SIGNATURE');
+        await api.uploadApplicantDocument(appData.id, fd, appData.accessToken);
+      }
 
       localStorage.removeItem('dbs_application_draft');
+
+      // Seamlessly open Razorpay payment gateway
+      handlePayApplicationFee(appData);
     } catch (err: any) {
-      track('apply_error', { step: 4 });
+      track('apply_error', { step: 5 });
       showAlert(`Submission failed: ${err.message}`, 'Application Submission Error', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePayApplicationFee = async () => {
-    if (!submittedApp) return;
+  const handlePayApplicationFee = async (appOverride?: any) => {
+    const currentApp = appOverride || submittedApp;
+    if (!currentApp) return;
 
     try {
       setLoading(true);
       await loadRazorpaySdk();
       if (!window.Razorpay) throw new Error('The payment gateway is unavailable right now. Your application is saved. Please try payment again later.');
 
-      const payableAmount = submittedApp.finalFee !== undefined ? submittedApp.finalFee : 500;
+      const payableAmount = currentApp.finalFee !== undefined ? currentApp.finalFee : currentAppFee;
       const orderRes = await api.createPaymentOrder({
         amount: payableAmount,
         purpose: 'APPLICATION_FEE',
-        applicationId: submittedApp.id,
-        customerName: submittedApp.fullName,
-        customerEmail: submittedApp.email,
+        applicationId: currentApp.id,
+        customerName: currentApp.fullName,
+        customerEmail: currentApp.email,
         customerPhone: formData.phone,
-        notes: `Application fee for ${submittedApp.id}${submittedApp.promoCodeUsed ? ` (Promo: ${submittedApp.promoCodeUsed})` : ''}`,
+        notes: `Application fee for ${currentApp.id}${currentApp.promoCodeUsed ? ` (Promo: ${currentApp.promoCodeUsed})` : ''}`,
       });
 
         const options = {
@@ -262,7 +303,7 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
           amount: orderRes.amount,
           currency: orderRes.currency,
           name: 'Deekshaam Business School',
-          description: `Application Fee for ${submittedApp.id}`,
+          description: `Application Fee for ${currentApp.id}`,
           order_id: orderRes.orderId,
           handler: async function (response: any) {
             try {
@@ -279,8 +320,8 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
             }
           },
           prefill: {
-            name: submittedApp.fullName,
-            email: submittedApp.email,
+            name: currentApp.fullName,
+            email: currentApp.email,
             contact: formData.phone,
           },
           theme: {
@@ -362,7 +403,7 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
                     <small>Board & marks</small>
                   </div>
                 </button>
-                <button className={step === 4 ? 'active' : ''} onClick={() => validateStep(3) && setStep(4)}>
+                <button className={step >= 4 ? 'active' : ''} onClick={() => validateStep(3) && setStep(4)}>
                   <span>4</span>
                   <div>
                     <strong>Review & Docs</strong>
@@ -419,12 +460,12 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
                           name="dob"
                           value={formData.dob}
                           onChange={handleChange}
-                          max="2010-12-31"
-                          min="1995-01-01"
+                          max={maxDob}
+                          min={minDob}
                           required
                         />
                         <span style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px', display: 'block' }}>
-                          Eligible undergraduate birth window: 1995 – 2010
+                          Applicants must be at least 14–15 years old.
                         </span>
                       </label>
                       <label>
@@ -667,112 +708,185 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
                             e.target.files?.[0] && setDocFiles((prev) => ({ ...prev, photo: e.target.files![0] }))
                           }
                         />
+                        {docFiles.photo && (
+                          <span style={{ fontSize: '11px', color: '#059669', display: 'block', marginTop: '2px' }}>
+                            ✓ {docFiles.photo.name}
+                          </span>
+                        )}
+                      </label>
+                      <label>
+                        Applicant Signature
+                        <input
+                          type="file"
+                          accept="image/*,.pdf"
+                          onChange={(e) =>
+                            e.target.files?.[0] && setDocFiles((prev) => ({ ...prev, signature: e.target.files![0] }))
+                          }
+                        />
+                        {docFiles.signature && (
+                          <span style={{ fontSize: '11px', color: '#059669', display: 'block', marginTop: '2px' }}>
+                            ✓ {docFiles.signature.name}
+                          </span>
+                        )}
                       </label>
                     </div>
 
-                    {/* PROMO / REFERRAL CODE SECTION */}
-                    <div
-                      style={{
-                        marginTop: '20px',
-                        padding: '16px',
-                        background: appliedPromo ? '#f0fdf4' : '#faf9f7',
-                        border: appliedPromo ? '1px solid #86efac' : '1px dashed var(--line)',
-                        borderRadius: '12px',
-                      }}
-                    >
-                      {!promoSectionOpen && !appliedPromo ? (
-                        <button
-                          type="button"
-                          onClick={() => setPromoSectionOpen(true)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'var(--orange)',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            fontSize: '14px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            padding: 0,
-                          }}
-                        >
-                          <Icon name="check" size={16} /> Have a promo code? Click here to apply
-                        </button>
-                      ) : (
-                        <div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                            <strong style={{ fontSize: '14px' }}>Referral / Promo Code</strong>
-                            {!appliedPromo && (
-                              <button
-                                type="button"
-                                onClick={() => setPromoSectionOpen(false)}
-                                style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '12px' }}
-                              >
-                                Hide
-                              </button>
-                            )}
-                          </div>
-
-                          {!appliedPromo ? (
-                            <div>
-                              <div style={{ display: 'flex', gap: '8px', maxWidth: '340px' }}>
-                                <input
-                                  type="text"
-                                  placeholder="Enter code (e.g. PD10)"
-                                  value={promoCodeInput}
-                                  onChange={(e) => setPromoCodeInput(e.target.value.toUpperCase())}
-                                  style={{ textTransform: 'uppercase', flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid #ccc' }}
-                                />
-                                <button
-                                  type="button"
-                                  className="btn btn-primary small"
-                                  onClick={() => handleApplyPromo()}
-                                  disabled={promoLoading || !promoCodeInput.trim()}
-                                >
-                                  {promoLoading ? 'Checking...' : 'Apply'}
-                                </button>
-                              </div>
-                              {promoError && (
-                                <p style={{ color: '#dc2626', fontSize: '12px', margin: '6px 0 0' }} role="alert">
-                                  {promoError}
-                                </p>
-                              )}
-                            </div>
-                          ) : (
-                            <div aria-live="polite">
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <div style={{ color: '#16a34a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <Icon name="check" size={18} color="#16a34a" />
-                                  <span>Code {appliedPromo.code} applied: {appliedPromo.discountPercent}% off</span>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={handleRemovePromo}
-                                  style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}
-                                >
-                                  Remove
-                                </button>
-                              </div>
-
-                              <div style={{ marginTop: '10px', fontSize: '13px', color: '#444', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '8px', borderTop: '1px solid #bbf7d0', paddingTop: '8px' }}>
-                                <div>Standard Fee: <s style={{ textDecoration: 'line-through' }}>₹500</s></div>
-                                <div>Discount ({appliedPromo.discountPercent}%): <span style={{ color: '#16a34a', fontWeight: 600 }}>-₹{appliedPromo.discountAmount}</span></div>
-                                <div>Payable Now: <strong>₹{appliedPromo.finalFee}</strong></div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
                     <label className="consent" style={{ marginTop: '24px' }}>
-                      <input type="checkbox" required />
+                      <input
+                        type="checkbox"
+                        checked={consentConfirmed}
+                        onChange={(e) => setConsentConfirmed(e.target.checked)}
+                        required
+                      />
                       <span>
                         I confirm that the information submitted above is accurate and true to the best of my knowledge, and
                         I consent to the verification of my submitted academic credentials.
                       </span>
                     </label>
+                  </div>
+                )}
+
+                {/* STEP 5: SEPARATE REFERRAL & PROMO CODE SECTION (BEFORE PAYMENT) */}
+                {step === 5 && (
+                  <div>
+                    <span className="eyebrow">Fee Concession & Referral</span>
+                    <h2>Referral & Promo Code</h2>
+                    <p style={{ color: '#555', marginBottom: '20px' }}>
+                      If you were referred by an authorized education partner or received an institutional promo code, enter it below to receive your fee concession. You can also skip this step to proceed directly with standard fee payment.
+                    </p>
+
+                    {/* PROMO / REFERRAL CODE CARD */}
+                    <div
+                      style={{
+                        padding: '24px',
+                        background: appliedPromo ? '#f0fdf4' : '#faf9f7',
+                        border: appliedPromo ? '1px solid #86efac' : '1px dashed var(--line)',
+                        borderRadius: '12px',
+                        marginBottom: '24px',
+                      }}
+                    >
+                      {!appliedPromo ? (
+                        <div>
+                          <label style={{ display: 'block', fontWeight: 600, fontSize: '14px', marginBottom: '8px' }}>
+                            Have a Referral or Promo Code?
+                          </label>
+                          <div style={{ display: 'flex', gap: '8px', maxWidth: '380px' }}>
+                            <input
+                              type="text"
+                              placeholder="Enter code (e.g. PD10)"
+                              value={promoCodeInput}
+                              onChange={(e) => {
+                                setPromoCodeInput(e.target.value.toUpperCase());
+                                setPromoError(null);
+                              }}
+                              style={{ textTransform: 'uppercase', flex: 1, padding: '10px 14px', borderRadius: '8px', border: '1px solid #ccc' }}
+                            />
+                            <button
+                              type="button"
+                              className="btn btn-primary small"
+                              onClick={() => handleApplyPromo()}
+                              disabled={promoLoading || !promoCodeInput.trim()}
+                            >
+                              {promoLoading ? 'Checking...' : 'Apply Code'}
+                            </button>
+                          </div>
+                          {promoError && (
+                            <p style={{ color: '#dc2626', fontSize: '13px', margin: '8px 0 0' }} role="alert">
+                              {promoError}
+                            </p>
+                          )}
+
+                          {!promoSkipped && (
+                            <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <span style={{ fontSize: '13px', color: '#666' }}>Don't have a promo code?</span>
+                              <button
+                                type="button"
+                                className="btn btn-ghost small"
+                                onClick={() => setPromoSkipped(true)}
+                                style={{ color: 'var(--navy-900)', fontWeight: 600 }}
+                              >
+                                Skip Promo Code &rarr;
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div aria-live="polite">
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                            <div style={{ color: '#16a34a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', fontSize: '15px' }}>
+                              <Icon name="check" size={20} color="#16a34a" />
+                              <span>Promo code <strong>{appliedPromo.code}</strong> applied ({appliedPromo.discountPercent}% discount)</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={handleRemovePromo}
+                              style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}
+                            >
+                              Remove / Change
+                            </button>
+                          </div>
+
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px', background: '#ffffff', padding: '12px 16px', borderRadius: '8px', border: '1px solid #bbf7d0', fontSize: '13px' }}>
+                            <div>Standard Fee: <s style={{ textDecoration: 'line-through', color: '#888' }}>₹{appliedPromo.originalFee || currentAppFee}</s></div>
+                            <div>Discount: <span style={{ color: '#16a34a', fontWeight: 700 }}>-₹{appliedPromo.discountAmount}</span></div>
+                            <div>Payable: <strong style={{ color: 'var(--navy-900)', fontSize: '15px' }}>₹{appliedPromo.finalFee}</strong></div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* PAYMENT OPTION: ONLY VISIBLE AFTER USER EITHER ADDS PROMO OR CLICKS SKIP */}
+                    {(appliedPromo || promoSkipped) && (
+                      <div
+                        style={{
+                          border: '1px solid #1c3a5e',
+                          borderRadius: '16px',
+                          padding: '24px',
+                          background: '#f8fafc',
+                          boxShadow: '0 4px 16px rgba(15, 36, 64, 0.05)',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                          <div>
+                            <span style={{ fontSize: '12px', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em' }}>
+                              Payment Summary
+                            </span>
+                            <h3 style={{ margin: '4px 0 6px', fontSize: '20px', color: 'var(--navy-900)' }}>
+                              Application Processing Fee
+                            </h3>
+                            <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
+                              Degree: <strong>{selectedProgram?.title || formData.programSlug.toUpperCase()} ({formData.programSlug.toUpperCase()})</strong>
+                              {currentTotalFee > 0 && <span> &middot; Total Degree Fee: <strong>₹{currentTotalFee.toLocaleString('en-IN')}</strong></span>}
+                              <br />
+                              {appliedPromo ? (
+                                <span style={{ color: '#16a34a', fontWeight: 600 }}>Discount applied via code {appliedPromo.code}</span>
+                              ) : (
+                                <span>Standard application fee (Promo skipped)</span>
+                              )}
+                            </p>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--navy-900)' }}>
+                              ₹{appliedPromo ? appliedPromo.finalFee : currentAppFee}
+                            </div>
+                            <small style={{ color: '#64748b' }}>INR (Application Fee)</small>
+                          </div>
+                        </div>
+
+                        <div style={{ marginTop: '20px' }}>
+                          <button
+                            type="submit"
+                            className="btn btn-primary"
+                            style={{ width: '100%', padding: '14px 24px', fontSize: '16px', fontWeight: 700, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
+                            disabled={loading}
+                          >
+                            {loading
+                              ? 'Submitting & Opening Payment...'
+                              : `Proceed to Pay ₹${appliedPromo ? appliedPromo.finalFee : currentAppFee} via Razorpay`} <Icon name="arrow" size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -789,14 +903,20 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
                       </button>
                     )}
 
-                    {step < 4 ? (
+                    {step < 5 ? (
                       <button type="button" className="btn btn-primary" onClick={nextStep}>
                         Continue <Icon name="arrow" size={16} />
                       </button>
                     ) : (
-                      <button type="submit" className="btn btn-primary" disabled={loading}>
-                        {loading ? 'Submitting...' : 'Submit Application'} <Icon name="arrow" size={16} />
-                      </button>
+                      !appliedPromo && !promoSkipped && (
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          onClick={() => setPromoSkipped(true)}
+                        >
+                          Skip to Payment <Icon name="arrow" size={16} />
+                        </button>
+                      )
                     )}
                   </div>
                 </div>
@@ -847,14 +967,20 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
                 }}
               >
                 <h3 style={{ margin: '0 0 8px', fontSize: '18px' }}>Application Processing Fee</h3>
-                <p style={{ fontSize: '13px', color: '#666', margin: '0 0 16px' }}>
-                  Amount: <strong>₹{(submittedApp.finalFee !== undefined ? submittedApp.finalFee : 500).toFixed(2)} INR</strong>{' '}
+                <p style={{ fontSize: '13px', color: '#666', margin: '0 0 12px' }}>
+                  Amount Payable Now:{' '}
+                  <strong>₹{(submittedApp.finalFee !== undefined ? submittedApp.finalFee : currentAppFee).toFixed(2)} INR</strong>{' '}
                   {submittedApp.discountAmount > 0 && (
                     <span style={{ color: '#16a34a', marginLeft: '6px' }}>
                       (Includes {submittedApp.discountPercentApplied}% discount via code {submittedApp.promoCodeUsed})
                     </span>
                   )}
                 </p>
+                {submittedApp.totalCourseFee > 0 && (
+                  <p style={{ fontSize: '13px', color: '#555', margin: '0 0 16px' }}>
+                    Total Program / Tuition Fee: <strong>₹{submittedApp.totalCourseFee.toLocaleString('en-IN')} INR</strong>
+                  </p>
+                )}
 
                 {paymentSuccess ? (
                   <div
@@ -873,10 +999,10 @@ export const Apply: React.FC<ApplyProps> = ({ onNavigate }) => {
                     <Icon name="check" size={18} color="var(--green)" /> Application Fee Paid & Verified
                   </div>
                 ) : (
-                  <button className="btn btn-primary" onClick={handlePayApplicationFee} disabled={loading}>
+                  <button className="btn btn-primary" onClick={() => handlePayApplicationFee()} disabled={loading}>
                     {loading
                       ? 'Processing...'
-                      : `Pay Application Fee via Razorpay (₹${submittedApp.finalFee !== undefined ? submittedApp.finalFee : 500})`}
+                      : `Pay Application Fee via Razorpay (₹${submittedApp.finalFee !== undefined ? submittedApp.finalFee : currentAppFee})`}
                   </button>
                 )}
               </div>

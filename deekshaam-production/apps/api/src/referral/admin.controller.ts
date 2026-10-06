@@ -69,11 +69,11 @@ export async function createAgent(req: AuthenticatedRequest, res: Response) {
   const data = parsed.data;
 
   // Check email collision
-  const existingUser = memoryDb.users.find((u) => u.email.toLowerCase() === data.email.toLowerCase());
   const existingAgent = memoryDb.agents.find((a) => a.email.toLowerCase() === data.email.toLowerCase() && !a.deletedAt);
-  if (existingUser || existingAgent) {
-    return res.status(409).json({ success: false, error: { code: 'AGENT_EXISTS', message: 'An account with this email already exists.' } });
+  if (existingAgent) {
+    return res.status(409).json({ success: false, error: { code: 'AGENT_EXISTS', message: 'An agent account with this email already exists.' } });
   }
+  const existingUserRecord = memoryDb.users.find((u) => u.email.toLowerCase() === data.email.toLowerCase());
 
   const settings = referralService.getSettings();
 
@@ -108,18 +108,27 @@ export async function createAgent(req: AuthenticatedRequest, res: Response) {
   }
 
   // Create User account for Agent
-  const tempPassword = data.password || `Agent@${Math.floor(100000 + Math.random() * 900000)}!`;
-  const userId = `usr-agent-${Date.now()}`;
-  const newUser = {
-    id: userId,
-    email: data.email,
-    passwordHash: await bcrypt.hash(tempPassword, 10),
-    name: data.name,
-    role: 'AGENT',
-    isActive: data.status === 'ACTIVE',
-    createdAt: new Date().toISOString(),
-  };
-  memoryDb.users.push(newUser);
+  const tempPassword = data.password || (data as any).temporaryPassword || `Agent@${Math.floor(100000 + Math.random() * 900000)}!`;
+  const userId = existingUserRecord ? existingUserRecord.id : `usr-agent-${Date.now()}`;
+  if (existingUserRecord) {
+    existingUserRecord.passwordHash = await bcrypt.hash(tempPassword, 10);
+    existingUserRecord.isActive = data.status === 'ACTIVE';
+    existingUserRecord.name = data.name;
+    if (!existingUserRecord.role || existingUserRecord.role === 'AGENT') {
+      existingUserRecord.role = 'AGENT';
+    }
+  } else {
+    const newUser = {
+      id: userId,
+      email: data.email,
+      passwordHash: await bcrypt.hash(tempPassword, 10),
+      name: data.name,
+      role: 'AGENT',
+      isActive: data.status === 'ACTIVE',
+      createdAt: new Date().toISOString(),
+    };
+    memoryDb.users.push(newUser);
+  }
 
   // Create Agent profile
   const agentId = `agent-${Date.now()}`;
@@ -142,6 +151,7 @@ export async function createAgent(req: AuthenticatedRequest, res: Response) {
     deletedAt: null,
   };
   memoryDb.agents.unshift(newAgent);
+  memoryDb.saveToFile();
 
   referralService.recordAuditLog({
     actorUserId: req.user?.id || 'SYSTEM',
@@ -160,7 +170,7 @@ export async function createAgent(req: AuthenticatedRequest, res: Response) {
   });
 }
 
-export function updateAgent(req: AuthenticatedRequest, res: Response) {
+export async function updateAgent(req: AuthenticatedRequest, res: Response) {
   const { id } = req.params;
   const isSuperAdmin = req.user?.role === 'SUPER_ADMIN';
 
@@ -220,11 +230,18 @@ export function updateAgent(req: AuthenticatedRequest, res: Response) {
 
   agent.updatedAt = new Date().toISOString();
 
-  // Sync user status
-  const user = memoryDb.users.find((u) => u.id === agent.userId);
-  if (user && data.status) {
-    user.isActive = data.status === 'ACTIVE';
+  // Sync user status & password
+  const user = memoryDb.users.find((u: any) => u.id === agent.userId || (agent.email && u.email.toLowerCase() === agent.email.toLowerCase()));
+  if (user) {
+    if (data.status) {
+      user.isActive = data.status === 'ACTIVE';
+    }
+    if (data.password) {
+      user.passwordHash = await bcrypt.hash(data.password, 10);
+    }
   }
+
+  memoryDb.saveToFile();
 
   referralService.recordAuditLog({
     actorUserId: req.user?.id || 'SYSTEM',
@@ -252,8 +269,10 @@ export function toggleAgentStatus(req: AuthenticatedRequest, res: Response) {
   agent.status = newStatus;
   agent.updatedAt = new Date().toISOString();
 
-  const user = memoryDb.users.find((u) => u.id === agent.userId);
+  const user = memoryDb.users.find((u) => u.id === agent.userId || (agent.email && u.email.toLowerCase() === agent.email.toLowerCase()));
   if (user) user.isActive = newStatus === 'ACTIVE';
+
+  memoryDb.saveToFile();
 
   referralService.recordAuditLog({
     actorUserId: req.user?.id || 'SYSTEM',
@@ -280,6 +299,7 @@ export function recordPayout(req: AuthenticatedRequest, res: Response) {
       ...parsed.data,
       paidBy: req.user?.id || 'SUPER_ADMIN',
     });
+    memoryDb.saveToFile();
     res.status(201).json({ success: true, data: payout });
   } catch (err: any) {
     res.status(400).json({ success: false, error: { code: 'PAYOUT_FAILED', message: err.message } });
@@ -360,6 +380,7 @@ export function updateReferralSettings(req: AuthenticatedRequest, res: Response)
     updatedAt: new Date().toISOString(),
   };
   memoryDb.referralSettings = updated;
+  memoryDb.saveToFile();
 
   referralService.recordAuditLog({
     actorUserId: req.user?.id || 'SUPER_ADMIN',

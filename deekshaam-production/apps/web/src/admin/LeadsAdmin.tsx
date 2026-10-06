@@ -1,6 +1,7 @@
 import { Dialog } from '../components/Dialog';
 import { useAdminFeedback } from './AdminFeedback';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Icon } from '@deekshaam/ui';
 import { api } from '../services/api';
 
 export const LeadsAdmin: React.FC = () => {
@@ -12,16 +13,59 @@ export const LeadsAdmin: React.FC = () => {
   const [notes, setNotes] = useState('');
   const [assignedTo, setAssignedTo] = useState('');
 
+  // Filters State
+  const [typeTab, setTypeTab] = useState<'ALL' | 'CAMPUS_VISIT' | 'GENERAL'>('ALL');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [search, setSearch] = useState('');
+
   const fetchLeads = () => {
-    api.getAdminLeads().then((data) => {
-      setLeads(data || []);
-      setLoading(false);
-    }).catch((err: Error) => { setLoading(false); notify(err.message || 'Unable to load this workspace. Please try again.'); });
+    api
+      .getAdminLeads()
+      .then((data) => {
+        setLeads(data || []);
+        setLoading(false);
+      })
+      .catch((err: Error) => {
+        setLoading(false);
+        notify(err.message || 'Unable to load this workspace. Please try again.');
+      });
   };
 
   useEffect(() => {
     fetchLeads();
   }, []);
+
+  const filteredLeads = useMemo(() => {
+    return leads.filter((lead) => {
+      // Type Tab
+      if (typeTab === 'CAMPUS_VISIT' && lead.type !== 'CAMPUS_VISIT') return false;
+      if (typeTab === 'GENERAL' && lead.type === 'CAMPUS_VISIT') return false;
+
+      // Status
+      if (statusFilter && lead.status !== statusFilter) return false;
+
+      // Search
+      if (search.trim()) {
+        const q = search.toLowerCase().trim();
+        const mName = lead.name?.toLowerCase().includes(q);
+        const mPhone = lead.phone?.toLowerCase().includes(q);
+        const mEmail = lead.email?.toLowerCase().includes(q);
+        const mProgram = lead.program?.toLowerCase().includes(q);
+        const mCounselor = lead.assignedTo?.toLowerCase().includes(q);
+        if (!mName && !mPhone && !mEmail && !mProgram && !mCounselor) return false;
+      }
+
+      return true;
+    });
+  }, [leads, typeTab, statusFilter, search]);
+
+  const hasActiveFilters = typeTab !== 'ALL' || statusFilter !== '' || search.trim() !== '';
+
+  const handleResetFilters = () => {
+    setTypeTab('ALL');
+    setStatusFilter('');
+    setSearch('');
+  };
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,19 +87,223 @@ export const LeadsAdmin: React.FC = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      {/* HEADER */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <div>
-          <h1 style={{ fontSize: '28px', margin: '0 0 6px' }}>Enquiry & Campus Visit Leads</h1>
-          <p style={{ color: '#777', margin: 0 }}>Follow up on callback requests, website enquiries, and scheduled tours.</p>
+          <h1 style={{ fontSize: '28px', margin: '0 0 6px', letterSpacing: '-0.5px' }}>
+            Enquiry & Campus Visit Leads
+          </h1>
+          <p style={{ color: '#777', margin: 0 }}>
+            Follow up on callback requests, website enquiries, and scheduled tours.
+          </p>
+        </div>
+      </div>
+
+      {/* COMBINED SEGMENT & FILTER TOOLBAR */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
+          marginBottom: '16px',
+        }}
+      >
+        {/* LEFT: Type Segment Pills */}
+        <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
+          <button
+            type="button"
+            onClick={() => setTypeTab('ALL')}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '20px',
+              border: 'none',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              background: typeTab === 'ALL' ? '#1b365d' : '#f1f5f9',
+              color: typeTab === 'ALL' ? '#ffffff' : '#475569',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <span>All Leads</span>
+            <span
+              style={{
+                fontSize: '11px',
+                padding: '1px 6px',
+                borderRadius: '10px',
+                background: typeTab === 'ALL' ? 'rgba(255,255,255,0.22)' : '#e2e8f0',
+                color: typeTab === 'ALL' ? '#fff' : '#64748b',
+                fontWeight: 700,
+              }}
+            >
+              {leads.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setTypeTab('CAMPUS_VISIT')}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '20px',
+              border: 'none',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              background: typeTab === 'CAMPUS_VISIT' ? '#d97706' : '#f1f5f9',
+              color: typeTab === 'CAMPUS_VISIT' ? '#ffffff' : '#475569',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <span>Campus Visits</span>
+            <span
+              style={{
+                fontSize: '11px',
+                padding: '1px 6px',
+                borderRadius: '10px',
+                background: typeTab === 'CAMPUS_VISIT' ? 'rgba(255,255,255,0.25)' : '#e2e8f0',
+                color: typeTab === 'CAMPUS_VISIT' ? '#fff' : '#64748b',
+                fontWeight: 700,
+              }}
+            >
+              {leads.filter((l) => l.type === 'CAMPUS_VISIT').length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setTypeTab('GENERAL')}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '20px',
+              border: 'none',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              background: typeTab === 'GENERAL' ? '#0369a1' : '#f1f5f9',
+              color: typeTab === 'GENERAL' ? '#ffffff' : '#475569',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <span>General Enquiries</span>
+            <span
+              style={{
+                fontSize: '11px',
+                padding: '1px 6px',
+                borderRadius: '10px',
+                background: typeTab === 'GENERAL' ? 'rgba(255,255,255,0.22)' : '#e2e8f0',
+                color: typeTab === 'GENERAL' ? '#fff' : '#64748b',
+                fontWeight: 700,
+              }}
+            >
+              {leads.filter((l) => l.type !== 'CAMPUS_VISIT').length}
+            </span>
+          </button>
+        </div>
+
+        {/* RIGHT: Compact Inline Filters */}
+        <div className="admin-toolbar-filter">
+          <div style={{ position: 'relative', width: '220px' }}>
+            <span
+              style={{
+                position: 'absolute',
+                left: '10px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#94a3b8',
+                pointerEvents: 'none',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <Icon name="search" size={14} />
+            </span>
+            <input
+              type="text"
+              placeholder="Filter by name, phone..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                style={{
+                  position: 'absolute',
+                  right: '8px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#94a3b8',
+                  padding: 0,
+                  display: 'flex',
+                }}
+              >
+                <Icon name="close" size={14} />
+              </button>
+            )}
+          </div>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="">All Statuses</option>
+            <option value="NEW">New</option>
+            <option value="CONTACTED">Contacted</option>
+            <option value="FOLLOW_UP">Follow Up</option>
+            <option value="CLOSED">Closed</option>
+          </select>
+
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              style={{
+                background: '#fee2e2',
+                border: '1px solid #fca5a5',
+                borderRadius: '8px',
+                color: '#b91c1c',
+                cursor: 'pointer',
+                fontSize: '12px',
+                fontWeight: 600,
+                padding: '0 10px',
+                height: '36px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <Icon name="close" size={13} /> Clear
+            </button>
+          )}
+
+          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 500, marginLeft: '4px' }}>
+            ({filteredLeads.length})
+          </span>
         </div>
       </div>
 
       <div className="admin-card">
         {loading ? (
           <div>Loading leads...</div>
-        ) : leads.length === 0 ? (
+        ) : filteredLeads.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '48px', color: '#777' }}>
-            No incoming leads recorded.
+            No leads match the selected filter criteria.
           </div>
         ) : (
           <div className="table-responsive" role="region" aria-label="Scrollable data table" tabIndex={0}>
@@ -72,7 +320,7 @@ export const LeadsAdmin: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {leads.map((lead) => (
+                {filteredLeads.map((lead) => (
                   <tr key={lead.id}>
                     <td>
                       <span className={`badge ${lead.type === 'CAMPUS_VISIT' ? 'badge-warning' : 'badge-info'}`}>
@@ -122,7 +370,14 @@ export const LeadsAdmin: React.FC = () => {
 
       {/* LEAD ACTION MODAL */}
       {selectedLead && (
-        <Dialog open={true} onClose={() => setSelectedLead(null)} label="Update enquiry" className="workspace-editor">
+        <Dialog
+          open={true}
+          onClose={() => setSelectedLead(null)}
+          label="Update enquiry"
+          className="workspace-editor"
+          preventBackdropClose={true}
+          preventEscapeClose={true}
+        >
           <div className="workspace-editor-body">
             <h2 style={{ fontSize: '22px', margin: '0 0 16px' }}>Manage Lead: {selectedLead.name}</h2>
 

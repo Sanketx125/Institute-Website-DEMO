@@ -58,6 +58,17 @@ export function submitApplication(req: Request, res: Response) {
   const validated = applicationSchema.parse(req.body);
   const applicationId = generateApplicationId();
 
+  const prog = memoryDb.programs.find(
+    (p: any) =>
+      p.slug === validated.programSlug ||
+      p.code?.toLowerCase() === validated.programSlug.toLowerCase() ||
+      p.id === validated.programSlug
+  );
+  const baseFee = prog && typeof prog.applicationFee === 'number' && prog.applicationFee > 0
+    ? prog.applicationFee
+    : 500;
+  const baseFeePaise = Math.round(baseFee * 100);
+
   let referralData = {
     agentId: null as string | null,
     promoCodeUsed: null as string | null,
@@ -65,7 +76,7 @@ export function submitApplication(req: Request, res: Response) {
     discountAmount: 0,
     commissionPercentApplied: 0,
     commissionAmount: 0,
-    finalFeePaise: 50000,
+    finalFeePaise: baseFeePaise,
   };
 
   if (validated.promoCode) {
@@ -73,6 +84,7 @@ export function submitApplication(req: Request, res: Response) {
       referralData = referralService.processAdmissionSubmission({
         applicationId,
         promoCode: validated.promoCode,
+        programSlug: validated.programSlug,
         studentEmail: validated.email,
         studentPhone: validated.phone,
         studentUserId: (req as any).user?.id,
@@ -119,6 +131,7 @@ export function submitApplication(req: Request, res: Response) {
   };
 
   memoryDb.applications.unshift(application);
+  memoryDb.saveToFile();
 
   recordAuditLog({
     action: 'CREATE',
@@ -146,6 +159,8 @@ export function submitApplication(req: Request, res: Response) {
       promoCodeUsed: application.promoCodeUsed,
       discountPercentApplied: application.discountPercentApplied,
       discountAmount: (application.discountAmount || 0) / 100,
+      originalFee: baseFee,
+      totalCourseFee: prog?.totalFee || 0,
       finalFee: referralData.finalFeePaise / 100,
     },
   });

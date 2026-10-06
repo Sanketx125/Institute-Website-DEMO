@@ -24,10 +24,10 @@ export const workspaceModules = [
   { id: 'settings', label: 'Site settings', icon: 'settings', group: 'Administration', roles: ['SUPER_ADMIN'], description: 'Update institutional identity and contact details.' },
   { id: 'users', label: 'Team & access', icon: 'shield', group: 'Administration', roles: ['SUPER_ADMIN'], description: 'Create staff accounts and assign access.' },
   { id: 'audit', label: 'Activity log', icon: 'clock', group: 'Administration', roles: ['SUPER_ADMIN'], description: 'Review recorded administrative activity.' },
-  // AGENT EXCLUSIVE PORTAL MODULES
-  { id: 'agent-dashboard', label: 'Partner overview', icon: 'grid', group: 'Partner portal', roles: ['AGENT'], description: 'Referral KPIs, earnings and promo link.' },
-  { id: 'agent-admissions', label: 'Referred admissions', icon: 'user', group: 'Partner portal', roles: ['AGENT'], description: 'Applications referred with masked contact data.' },
-  { id: 'agent-payouts', label: 'Payout history', icon: 'check', group: 'Partner portal', roles: ['AGENT'], description: 'Commission payout disbursement history.' },
-  { id: 'agent-profile', label: 'Banking & profile', icon: 'settings', group: 'Partner portal', roles: ['AGENT'], description: 'Update bank account or UPI payout details.' },
+  // AGENT & STAFF REFERRAL PORTAL MODULES
+  { id: 'agent-dashboard', label: 'My referral dashboard', icon: 'grid', group: 'My referrals', roles: ['SUPER_ADMIN', 'CONTENT_ADMIN', 'ADMISSION_STAFF', 'ENQUIRY_STAFF', 'AGENT'], description: 'Referral KPIs, earnings and promo link.' },
+  { id: 'agent-admissions', label: 'My referred admissions', icon: 'user', group: 'My referrals', roles: ['SUPER_ADMIN', 'CONTENT_ADMIN', 'ADMISSION_STAFF', 'ENQUIRY_STAFF', 'AGENT'], description: 'Applications referred with masked contact data.' },
+  { id: 'agent-payouts', label: 'My payout history', icon: 'check', group: 'My referrals', roles: ['SUPER_ADMIN', 'CONTENT_ADMIN', 'ADMISSION_STAFF', 'ENQUIRY_STAFF', 'AGENT'], description: 'Commission payout disbursement history.' },
+  { id: 'agent-profile', label: 'My payout details', icon: 'settings', group: 'My referrals', roles: ['SUPER_ADMIN', 'CONTENT_ADMIN', 'ADMISSION_STAFF', 'ENQUIRY_STAFF', 'AGENT'], description: 'Update bank account or UPI payout details.' },
 ] as const;
 export const canAccess = (role: string, module: string) => workspaceModules.some(m => m.id === module && (m.roles as readonly string[]).includes(role));

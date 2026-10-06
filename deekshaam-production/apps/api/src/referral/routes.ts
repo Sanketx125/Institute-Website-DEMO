@@ -45,12 +45,12 @@ const validateLimiter = rateLimit({
 router.post('/validate', validateLimiter, validatePromoCode);
 
 // ----------------------------------------------------
-// AGENT PORTAL ENDPOINTS (Restricted to AGENT)
+// AGENT & STAFF REFERRAL PORTAL ENDPOINTS
 // ----------------------------------------------------
-router.get('/agent/dashboard', authenticate, requireRole(['AGENT']), getAgentDashboard);
-router.get('/agent/admissions', authenticate, requireRole(['AGENT']), getAgentAdmissions);
-router.get('/agent/payouts', authenticate, requireRole(['AGENT']), getAgentPayouts);
-router.patch('/agent/payout-details', authenticate, requireRole(['AGENT']), updateAgentPayoutDetails);
+router.get('/agent/dashboard', authenticate, requireRole(['AGENT', 'SUPER_ADMIN', 'ADMISSION_STAFF', 'CONTENT_ADMIN', 'ENQUIRY_STAFF']), getAgentDashboard);
+router.get('/agent/admissions', authenticate, requireRole(['AGENT', 'SUPER_ADMIN', 'ADMISSION_STAFF', 'CONTENT_ADMIN', 'ENQUIRY_STAFF']), getAgentAdmissions);
+router.get('/agent/payouts', authenticate, requireRole(['AGENT', 'SUPER_ADMIN', 'ADMISSION_STAFF', 'CONTENT_ADMIN', 'ENQUIRY_STAFF']), getAgentPayouts);
+router.patch('/agent/payout-details', authenticate, requireRole(['AGENT', 'SUPER_ADMIN', 'ADMISSION_STAFF', 'CONTENT_ADMIN', 'ENQUIRY_STAFF']), updateAgentPayoutDetails);
 
 // ----------------------------------------------------
 // ADMIN & STAFF ENDPOINTS

@@ -52,7 +52,7 @@ export class ReferralService {
   }
 
   /**
-   * Validates a promo code with optional anti-fraud student context.
+   * Validates a promo code with optional anti-fraud student context and program-specific fee lookup.
    */
   public validateCode(
     code: string,
@@ -60,7 +60,8 @@ export class ReferralService {
       email?: string;
       phone?: string;
       userId?: string;
-    }
+    },
+    programSlug?: string
   ): ValidationOutcome {
     if (!this.isEnabled()) {
       return { valid: false, message: 'Referral program is not active at this time.' };
@@ -98,12 +99,25 @@ export class ReferralService {
       }
     }
 
+    let grossFeePaise = STANDARD_APPLICATION_FEE_PAISE;
+    if (programSlug) {
+      const prog = memoryDb.programs.find(
+        (p: any) =>
+          p.slug === programSlug ||
+          p.code?.toLowerCase() === programSlug.toLowerCase() ||
+          p.id === programSlug
+      );
+      if (prog && typeof prog.applicationFee === 'number' && prog.applicationFee > 0) {
+        grossFeePaise = Math.round(prog.applicationFee * 100);
+      }
+    }
+
     const settings = this.getSettings();
     const discountPercent = Number(agent.studentDiscountPercent || 0);
     const commissionPercent = Number(agent.commissionPercent || 0);
 
     const calculation = calculateReferralAmounts({
-      grossFeePaise: STANDARD_APPLICATION_FEE_PAISE,
+      grossFeePaise,
       discountPercent,
       commissionPercent,
       commissionBase: settings.commissionBase,
@@ -124,6 +138,7 @@ export class ReferralService {
   public processAdmissionSubmission(params: {
     applicationId: string;
     promoCode?: string;
+    programSlug?: string;
     studentEmail: string;
     studentPhone: string;
     studentUserId?: string;
@@ -136,6 +151,20 @@ export class ReferralService {
     commissionAmount: number; // in paise
     finalFeePaise: number;
   } {
+    let grossFeePaise = STANDARD_APPLICATION_FEE_PAISE;
+    if (params.programSlug) {
+      const pSlug = params.programSlug;
+      const prog = memoryDb.programs.find(
+        (p: any) =>
+          p.slug === pSlug ||
+          (p.code && p.code.toLowerCase() === pSlug.toLowerCase()) ||
+          p.id === pSlug
+      );
+      if (prog && typeof prog.applicationFee === 'number' && prog.applicationFee > 0) {
+        grossFeePaise = Math.round(prog.applicationFee * 100);
+      }
+    }
+
     if (!this.isEnabled() || !params.promoCode) {
       return {
         agentId: null,
@@ -144,15 +173,19 @@ export class ReferralService {
         discountAmount: 0,
         commissionPercentApplied: 0,
         commissionAmount: 0,
-        finalFeePaise: STANDARD_APPLICATION_FEE_PAISE,
+        finalFeePaise: grossFeePaise,
       };
     }
 
-    const outcome = this.validateCode(params.promoCode, {
-      email: params.studentEmail,
-      phone: params.studentPhone,
-      userId: params.studentUserId,
-    });
+    const outcome = this.validateCode(
+      params.promoCode,
+      {
+        email: params.studentEmail,
+        phone: params.studentPhone,
+        userId: params.studentUserId,
+      },
+      params.programSlug
+    );
 
     if (!outcome.valid || !outcome.agent || !outcome.calculation) {
       throw new Error(outcome.message || 'The promo code applied is not valid.');
@@ -195,6 +228,8 @@ export class ReferralService {
           code: agent.promoCode,
         }),
       });
+
+      memoryDb.saveToFile();
     }
 
     return {

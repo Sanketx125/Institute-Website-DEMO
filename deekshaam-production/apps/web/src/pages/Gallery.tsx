@@ -2,6 +2,8 @@ import { SiteImage } from '../components/SiteImage';
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { SEOHead } from '../components/SEOHead';
+import { Dialog } from '../components/Dialog';
+import { Icon } from '@deekshaam/ui';
 
 interface GalleryProps {
   onNavigate: (path: string) => void;
@@ -10,18 +12,19 @@ interface GalleryProps {
 export const Gallery: React.FC<GalleryProps> = ({ onNavigate }) => {
   const [items, setItems] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState('All');
+  const [selectedPhoto, setSelectedPhoto] = useState<any | null>(null);
 
   useEffect(() => {
-    api.getGallery().then(setItems).catch(console.error);
+    api.getGallery().then((res) => setItems(res || [])).catch(console.error);
     api.trackEvent({ eventType: 'page_view', pagePath: '/gallery' }).catch(() => {});
   }, []);
 
-  const categories = ['All', ...Array.from(new Set(items.map((i) => i.category)))];
+  const categories = ['All', ...Array.from(new Set(items.map((i) => i.category).filter(Boolean)))];
   const filtered = activeCategory === 'All' ? items : items.filter((i) => i.category === activeCategory);
 
   return (
     <>
-      <SEOHead canonicalPath="/gallery" />
+      <SEOHead canonicalPath="/gallery" title="Campus Photo Gallery | Deekshaam Business School" />
 
       <section className="page-hero compact">
         <div className="container">
@@ -38,6 +41,7 @@ export const Gallery: React.FC<GalleryProps> = ({ onNavigate }) => {
             {categories.map((cat) => (
               <button
                 key={cat}
+                type="button"
                 className={`btn small ${activeCategory === cat ? 'btn-primary' : 'btn-ghost'}`}
                 onClick={() => setActiveCategory(cat)}
               >
@@ -50,25 +54,90 @@ export const Gallery: React.FC<GalleryProps> = ({ onNavigate }) => {
           <div className="gallery-page-grid">
             {filtered.map((item, i) => (
               <article
-                key={i}
+                key={item.id || i}
                 className="gallery-page-card"
+                onClick={() => setSelectedPhoto(item)}
+                style={{ cursor: 'pointer' }}
+                title="Click to view full photo"
               >
-                <SiteImage
-                  src={item.imageUrl}
-                  alt={item.title}
-                  loading="lazy"
-                />
+                <div style={{ position: 'relative', overflow: 'hidden' }}>
+                  <SiteImage
+                    src={item.imageUrl}
+                    alt={item.title || 'Deekshaam Campus'}
+                    loading="lazy"
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      right: '10px',
+                      bottom: '10px',
+                      background: 'rgba(0,0,0,0.6)',
+                      color: 'white',
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                  >
+                    <Icon name="search" size={12} /> View
+                  </div>
+                </div>
                 <div>
-                  <span className="eyebrow">{item.category}</span>
+                  <span className="eyebrow">{item.category || 'Campus'}</span>
                   <h3>{item.title}</h3>
                   {item.caption && <p>{item.caption}</p>}
                 </div>
               </article>
             ))}
           </div>
-          {!filtered.length && <div className="story-empty"><div><h2>No photos in this collection yet.</h2><p>New campus photographs will appear here as they are added.</p></div><button className="btn btn-ghost" onClick={() => onNavigate('/campus')}>Explore campus life</button></div>}
+
+          {!filtered.length && (
+            <div className="story-empty">
+              <div>
+                <h2>No photos in this collection yet.</h2>
+                <p>New campus photographs will appear here as they are added by the campus team.</p>
+              </div>
+              <button className="btn btn-ghost" onClick={() => onNavigate('/campus')}>
+                Explore campus life
+              </button>
+            </div>
+          )}
         </div>
       </section>
+
+      {/* FULL PHOTO LIGHTBOX DIALOG */}
+      {selectedPhoto && (
+        <Dialog
+          open={true}
+          onClose={() => setSelectedPhoto(null)}
+          label={selectedPhoto.title || 'Campus Photo'}
+          className="workspace-editor"
+        >
+          <div style={{ padding: '20px', textAlign: 'center' }}>
+            <div style={{ maxHeight: '70vh', overflow: 'hidden', borderRadius: '10px', background: '#000', marginBottom: '16px' }}>
+              <SiteImage
+                src={selectedPhoto.imageUrl}
+                alt={selectedPhoto.title}
+                style={{ width: '100%', maxHeight: '70vh', objectFit: 'contain' }}
+              />
+            </div>
+            <span className="eyebrow" style={{ display: 'inline-block', marginBottom: '6px' }}>
+              {selectedPhoto.category || 'Campus Life'}
+            </span>
+            <h2 style={{ fontSize: '20px', margin: '0 0 8px', color: '#0f172a' }}>{selectedPhoto.title}</h2>
+            {selectedPhoto.caption && (
+              <p style={{ color: '#64748b', fontSize: '14px', maxWidth: '600px', margin: '0 auto 16px' }}>
+                {selectedPhoto.caption}
+              </p>
+            )}
+            <button type="button" className="btn btn-ghost" onClick={() => setSelectedPhoto(null)}>
+              Close
+            </button>
+          </div>
+        </Dialog>
+      )}
     </>
   );
 };

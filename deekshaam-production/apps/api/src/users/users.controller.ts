@@ -53,6 +53,8 @@ export async function createUser(req: AuthenticatedRequest, res: Response) {
     details: { createdEmail: email, role },
   });
 
+  memoryDb.saveToFile();
+
   const { passwordHash, ...safe } = newUser;
   res.status(201).json({ success: true, data: safe });
 }
@@ -69,5 +71,6 @@ export async function resetUserPassword(req: AuthenticatedRequest, res: Response
   user.passwordHash = await bcrypt.hash(parsed.data.password, 10);
   user.sessionVersion = (user.sessionVersion || 0) + 1;
   recordAuditLog({ action: 'UPDATE', entity: 'UserPassword', entityId: user.id, userId: req.user?.id, userEmail: req.user?.email, details: { resetFor: user.email } });
+  memoryDb.saveToFile();
   res.json({ success: true, data: { message: 'Password updated. Previous sessions have been signed out.' } });
 }

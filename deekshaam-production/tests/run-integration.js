@@ -158,6 +158,19 @@ async function runTestSuite() {
     const uploadOk = await makeUpload({ 'x-applicant-token': applicantToken });
     assert(uploadOk.status === 201 && uploadOk.data.success, 'Authenticated applicant can upload verification documents');
 
+    // Security checks: SVG rejection and extension-mimetype mismatch enforcement
+    const fdSvg = new FormData();
+    fdSvg.append('document', new Blob(['<svg><script>alert(1)</script></svg>'], { type: 'image/svg+xml' }), 'exploit.svg');
+    fdSvg.append('documentType', 'MARKSHEET_10');
+    const uploadSvg = await request(`/api/admissions/upload/${generatedAppId}`, { method: 'POST', body: fdSvg, headers: { 'x-applicant-token': applicantToken } });
+    assert(uploadSvg.status === 400 && !uploadSvg.data.success, 'SVG upload as applicant verification document is rejected');
+
+    const fdMismatch = new FormData();
+    fdMismatch.append('document', new Blob(['binary payload'], { type: 'application/pdf' }), 'payload.exe');
+    fdMismatch.append('documentType', 'MARKSHEET_10');
+    const uploadMismatch = await request(`/api/admissions/upload/${generatedAppId}`, { method: 'POST', body: fdMismatch, headers: { 'x-applicant-token': applicantToken } });
+    assert(uploadMismatch.status === 400 && !uploadMismatch.data.success, 'File upload with extension mismatch is rejected');
+
     // Application tracking requires proof and never exposes PII
     const trackNoProof = await request(`/api/admissions/track/${generatedAppId}`);
     assert(trackNoProof.status === 401, 'Tracking without proof of ownership is rejected');

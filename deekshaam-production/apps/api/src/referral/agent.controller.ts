@@ -35,15 +35,56 @@ function maskName(fullName?: string): string {
 }
 
 /**
- * Retrieves the agent profile corresponding to the currently authenticated user.
+ * Retrieves or automatically provisions the agent profile corresponding to the currently authenticated user/staff.
  */
-function getAgentForUser(userId?: string) {
-  if (!userId) return null;
-  return memoryDb.agents.find((a) => a.userId === userId && !a.deletedAt) || null;
+function getOrCreateAgentForUser(user?: any) {
+  if (!user || !user.id) return null;
+  let agent = memoryDb.agents.find(
+    (a) =>
+      !a.deletedAt &&
+      (a.userId === user.id || (user.email && a.email && a.email.toLowerCase() === user.email.toLowerCase()))
+  );
+
+  if (!agent) {
+    const existingCodes = memoryDb.agents.filter((a) => !a.deletedAt).map((a) => a.promoCode);
+    const settings = referralService.getSettings();
+    const cleanPrefix = (user.name || 'STAFF').replace(/[^a-zA-Z]/g, '').slice(0, 5).toUpperCase() || 'STAFF';
+    let promoCode = `${cleanPrefix}10`;
+    let suffix = 1;
+    while (existingCodes.includes(promoCode)) {
+      promoCode = `${cleanPrefix}${suffix++}`;
+    }
+
+    agent = {
+      id: `agent-usr-${user.id}`,
+      userId: user.id,
+      name: user.name || 'Staff Partner',
+      email: user.email,
+      phone: '9876543210',
+      status: 'ACTIVE',
+      promoCode,
+      commissionPercent: settings.defaultCommissionPercent !== undefined ? settings.defaultCommissionPercent : 10,
+      studentDiscountPercent: settings.defaultDiscountPercent !== undefined ? settings.defaultDiscountPercent : 10,
+      payoutDetails: 'Internal Staff Referral Account',
+      notes: `Institutional referral account for staff member (${user.role || 'STAFF'})`,
+      isConfigured: true,
+      createdBy: user.id,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      deletedAt: null,
+    };
+    memoryDb.agents.unshift(agent);
+    memoryDb.saveToFile();
+  } else if (!agent.userId) {
+    agent.userId = user.id;
+    memoryDb.saveToFile();
+  }
+
+  return agent;
 }
 
 export function getAgentDashboard(req: AuthenticatedRequest, res: Response) {
-  const agent = getAgentForUser(req.user?.id);
+  const agent = getOrCreateAgentForUser(req.user);
   if (!agent) {
     return res.status(404).json({ success: false, error: { code: 'AGENT_NOT_FOUND', message: 'Agent profile not found.' } });
   }
@@ -109,7 +150,7 @@ export function getAgentDashboard(req: AuthenticatedRequest, res: Response) {
 }
 
 export function getAgentAdmissions(req: AuthenticatedRequest, res: Response) {
-  const agent = getAgentForUser(req.user?.id);
+  const agent = getOrCreateAgentForUser(req.user);
   if (!agent) {
     return res.status(404).json({ success: false, error: { code: 'AGENT_NOT_FOUND', message: 'Agent profile not found.' } });
   }
@@ -159,7 +200,7 @@ export function getAgentAdmissions(req: AuthenticatedRequest, res: Response) {
 }
 
 export function getAgentPayouts(req: AuthenticatedRequest, res: Response) {
-  const agent = getAgentForUser(req.user?.id);
+  const agent = getOrCreateAgentForUser(req.user);
   if (!agent) {
     return res.status(404).json({ success: false, error: { code: 'AGENT_NOT_FOUND', message: 'Agent profile not found.' } });
   }
@@ -182,7 +223,7 @@ export function getAgentPayouts(req: AuthenticatedRequest, res: Response) {
 }
 
 export function updateAgentPayoutDetails(req: AuthenticatedRequest, res: Response) {
-  const agent = getAgentForUser(req.user?.id);
+  const agent = getOrCreateAgentForUser(req.user);
   if (!agent) {
     return res.status(404).json({ success: false, error: { code: 'AGENT_NOT_FOUND', message: 'Agent profile not found.' } });
   }
@@ -198,6 +239,8 @@ export function updateAgentPayoutDetails(req: AuthenticatedRequest, res: Respons
     entityId: agent.id,
     newValue: JSON.stringify({ updated: true }),
   });
+
+  memoryDb.saveToFile();
 
   res.json({
     success: true,

@@ -19,6 +19,7 @@ import seoRoutes from './seo/routes';
 import analyticsRoutes from './analytics/routes';
 import aiRoutes from './ai/routes';
 import top3Routes from './top3/routes';
+import referralRoutes from './referral/routes';
 import { seoRender, WEB_DIST } from './seo/render';
 import { trackContentChanges } from './seo/changes';
 
@@ -108,6 +109,7 @@ app.use('/api/top3', top3Routes);
 app.use('/api/seo', seoRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/referral', referralRoutes);
 
 // 404 Route Handler
 app.use('/api/*', (req, res) => {

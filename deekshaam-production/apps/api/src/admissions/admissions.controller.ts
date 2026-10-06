@@ -52,13 +52,50 @@ function generateApplicationId(): string {
   return `DBS-${year}-${randomSixDigit}`;
 }
 
+import { referralService } from '../referral/referral.service';
+
 export function submitApplication(req: Request, res: Response) {
   const validated = applicationSchema.parse(req.body);
   const applicationId = generateApplicationId();
 
+  let referralData = {
+    agentId: null as string | null,
+    promoCodeUsed: null as string | null,
+    discountPercentApplied: 0,
+    discountAmount: 0,
+    commissionPercentApplied: 0,
+    commissionAmount: 0,
+    finalFeePaise: 50000,
+  };
+
+  if (validated.promoCode) {
+    try {
+      referralData = referralService.processAdmissionSubmission({
+        applicationId,
+        promoCode: validated.promoCode,
+        studentEmail: validated.email,
+        studentPhone: validated.phone,
+        studentUserId: (req as any).user?.id,
+      });
+    } catch (err: any) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_PROMO_CODE',
+          message: err.message || 'The promo code applied is not valid.',
+        },
+      });
+    }
+  }
+
   const application = {
     id: applicationId,
     ...validated,
+    agentId: referralData.agentId,
+    promoCodeUsed: referralData.promoCodeUsed,
+    discountPercentApplied: referralData.discountPercentApplied,
+    discountAmount: referralData.discountAmount,
+    commissionPercentApplied: referralData.commissionPercentApplied,
     accessToken: crypto.randomBytes(24).toString('hex'),
     status: 'SUBMITTED',
     stage: 1, // 1: Submitted, 2: Document Verification, 3: Admissions Review, 4: Decision, 5: Enrollment
@@ -84,7 +121,11 @@ export function submitApplication(req: Request, res: Response) {
     action: 'CREATE',
     entity: 'Application',
     entityId: applicationId,
-    details: { fullName: application.fullName, programSlug: application.programSlug },
+    details: {
+      fullName: application.fullName,
+      programSlug: application.programSlug,
+      promoCodeUsed: application.promoCodeUsed,
+    },
   });
 
   res.status(201).json({
@@ -98,6 +139,11 @@ export function submitApplication(req: Request, res: Response) {
       stage: application.stage,
       submittedAt: application.submittedAt,
       accessToken: application.accessToken,
+      agentId: application.agentId,
+      promoCodeUsed: application.promoCodeUsed,
+      discountPercentApplied: application.discountPercentApplied,
+      discountAmount: (application.discountAmount || 0) / 100,
+      finalFee: referralData.finalFeePaise / 100,
     },
   });
 }
@@ -259,6 +305,10 @@ export function updateApplicationStatus(req: AuthenticatedRequest, res: Response
     userEmail: req.user?.email,
     details: { oldStatus, newStatus: status, comment },
   });
+
+  if (status === 'REJECTED') {
+    referralService.reverseCommissionForAdmission(app.id, comment || 'Application marked as REJECTED', req.user?.id);
+  }
 
   const { accessToken: _accessToken, ...safeApp } = app;
   res.json({ success: true, data: safeApp });

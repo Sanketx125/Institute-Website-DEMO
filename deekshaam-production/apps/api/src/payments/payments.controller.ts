@@ -5,6 +5,7 @@ import { memoryDb } from '../database/client';
 import { recordAuditLog } from '../middleware/logger';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { config } from '../config';
+import { referralService } from '../referral/referral.service';
 
 function timingSafeEqual(a: string, b: string): boolean {
   const bufA = Buffer.from(a);
@@ -111,6 +112,7 @@ export function verifyPayment(req: Request, res: Response) {
       app.stage = 5; // Enrollment completed
       app.status = 'ACCEPTED';
     }
+    referralService.approveCommissionForAdmission(payment.applicationId);
   }
 
   recordAuditLog({
@@ -166,6 +168,9 @@ export function handleWebhook(req: Request, res: Response) {
       payment.status = 'SUCCESS';
       payment.paymentId = payload.id;
       payment.verifiedAt = new Date().toISOString();
+      if (payment.applicationId) {
+        referralService.approveCommissionForAdmission(payment.applicationId);
+      }
     }
   }
 

@@ -141,4 +141,21 @@ export const api = {
   getUsers: () => request('/users'),
   createUser: (data: any) => request('/users', { method: 'POST', body: JSON.stringify(data) }),
   resetUserPassword: (id: string, password: string) => request(`/users/${encodeURIComponent(id)}/password`, { method: 'PUT', body: JSON.stringify({ password }) }),
+
+  // Referral & Promo Code System
+  validatePromoCode: (code: string, programSlug?: string) =>
+    request('/referral/validate', { method: 'POST', body: JSON.stringify({ code, programSlug }) }),
+  getAgentDashboard: () => request('/referral/agent/dashboard'),
+  getAgentAdmissions: (params: string = '') => request(`/referral/agent/admissions${params ? '?' + params : ''}`),
+  getAgentPayouts: () => request('/referral/agent/payouts'),
+  updateAgentPayoutDetails: (payoutDetails: string) =>
+    request('/referral/agent/payout-details', { method: 'PATCH', body: JSON.stringify({ payoutDetails }) }),
+  getAgents: (params: string = '') => request(`/referral/agents${params ? '?' + params : ''}`),
+  createAgent: (data: any) => request('/referral/agents', { method: 'POST', body: JSON.stringify(data) }),
+  updateAgent: (id: string, data: any) => request(`/referral/agents/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  toggleAgentStatus: (id: string) => request(`/referral/agents/${encodeURIComponent(id)}/status`, { method: 'PATCH' }),
+  getCommissions: (params: string = '') => request(`/referral/commissions${params ? '?' + params : ''}`),
+  recordPayout: (data: any) => request('/referral/payouts', { method: 'POST', body: JSON.stringify(data) }),
+  getReferralSettings: () => request('/referral/settings'),
+  updateReferralSettings: (data: any) => request('/referral/settings', { method: 'PUT', body: JSON.stringify(data) }),
 };

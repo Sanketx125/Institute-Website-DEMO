@@ -1,10 +1,17 @@
 import React, { useEffect, useState } from 'react';
 const bundledImages = new Set(["2.png", "arts-1-qlt7sxguf5drb2bhqpcmn8bgp7vsuhsk0s0x3a09zc.jpg", "BCA.png", "Deekshaam-Buisness-School-Img-1.png", "DSC_4910-1-233x300.jpg", "DSC_4912-qqsttij3ttx45tgp6ad1j0wzronhumosx27gwai7fg.jpg", "Hcl.jpg", "hdfc-bank.webp", "Hector.webp", "ITC.jpg", "Johnsons-Control.webp", "Kellogs.webp", "MTR.webp", "Sales-Force.jpg", "Screenshot-2025-07-25-102127.jpg"]);
+const imageRenames: Record<string, string> = {
+  "2.png": "2.webp",
+  "BCA.png": "BCA.webp",
+  "Deekshaam-Buisness-School-Img-1.png": "Deekshaam-Buisness-School-Img-1.webp",
+};
 function localSource(src?: string) {
   if (!src) return '';
   try {
     const url = new URL(src, window.location.origin);
     const filename = url.pathname.split('/').pop() || '';
+    const renamed = imageRenames[filename];
+    if (renamed && (url.hostname === 'deekshaedu.in' || url.pathname.startsWith('/images/'))) return `/images/${renamed}`;
     if (url.hostname === 'deekshaedu.in' && bundledImages.has(filename)) return `/images/${filename}`;
   } catch { /* Preserve CMS paths that are not absolute URLs. */ }
   return src;

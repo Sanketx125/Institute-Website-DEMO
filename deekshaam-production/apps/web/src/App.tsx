@@ -49,6 +49,13 @@ import { LeadsAdmin } from './admin/LeadsAdmin';
 import { PaymentsAdmin } from './admin/PaymentsAdmin';
 import { UsersAdmin } from './admin/UsersAdmin';
 import { AuditLogsAdmin } from './admin/AuditLogsAdmin';
+import { AgentDashboard } from './admin/AgentDashboard';
+import { AgentAdmissions } from './admin/AgentAdmissions';
+import { AgentPayouts } from './admin/AgentPayouts';
+import { AgentProfile } from './admin/AgentProfile';
+import { AgentsAdmin } from './admin/AgentsAdmin';
+import { CommissionsAdmin } from './admin/CommissionsAdmin';
+import { ReferralSettingsAdmin } from './admin/ReferralSettingsAdmin';
 import { api, getAuthToken, clearAuthToken } from './services/api';
 
 export const App: React.FC = () => {
@@ -168,6 +175,13 @@ export const App: React.FC = () => {
           {selectedTab === 'payments' && <PaymentsAdmin />}
           {selectedTab === 'users' && <UsersAdmin />}
           {selectedTab === 'audit' && <AuditLogsAdmin />}
+          {selectedTab === 'referral-agents' && <AgentsAdmin currentUser={currentUser} />}
+          {selectedTab === 'referral-commissions' && <CommissionsAdmin />}
+          {selectedTab === 'referral-settings' && <ReferralSettingsAdmin />}
+          {selectedTab === 'agent-dashboard' && <AgentDashboard />}
+          {selectedTab === 'agent-admissions' && <AgentAdmissions />}
+          {selectedTab === 'agent-payouts' && <AgentPayouts />}
+          {selectedTab === 'agent-profile' && <AgentProfile />}
         </AdminLayout></AdminFeedbackProvider>
       );
     }

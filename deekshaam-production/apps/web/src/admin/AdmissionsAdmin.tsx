@@ -119,7 +119,16 @@ export const AdmissionsAdmin: React.FC = () => {
                       <div>{app.phone}</div>
                       <small style={{ color: '#888' }}>{app.email}</small>
                     </td>
-                    <td><span className="badge badge-info">{app.programSlug?.toUpperCase()}</span></td>
+                    <td>
+                      <span className="badge badge-info">{app.programSlug?.toUpperCase()}</span>
+                      {app.promoCodeUsed && (
+                        <div style={{ marginTop: '4px' }}>
+                          <span className="badge badge-warning" style={{ fontSize: '10px' }}>
+                            Referred: {app.agent ? `${app.agent.name} (${app.promoCodeUsed})` : app.promoCodeUsed}
+                          </span>
+                        </div>
+                      )}
+                    </td>
                     <td>{app.stream} &middot; {app.percentage}</td>
                     <td>Stage {app.stage || 1} of 5</td>
                     <td>
@@ -195,6 +204,15 @@ export const AdmissionsAdmin: React.FC = () => {
                 <div>Class 12: {selectedApp.board12} ({selectedApp.year12})</div>
                 <div>Stream: {selectedApp.stream} ({selectedApp.percentage})</div>
               </div>
+
+              {selectedApp.promoCodeUsed && (
+                <div>
+                  <strong>Referral Attribution:</strong>
+                  <div>Code Used: <code style={{ fontWeight: 700 }}>{selectedApp.promoCodeUsed}</code></div>
+                  <div>Discount Applied: {selectedApp.discountPercentApplied}% (₹{((selectedApp.discountAmountPaise || 0) / 100).toFixed(2)})</div>
+                  {selectedApp.agent && <div>Agent: {selectedApp.agent.name} ({selectedApp.agent.email})</div>}
+                </div>
+              )}
             </div>
 
             {/* UPLOADED DOCUMENTS */}

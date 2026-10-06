@@ -35,7 +35,23 @@ async function request<T = any>(endpoint: string, options: RequestInit = {}): Pr
 
   const data = await res.json();
   if (!res.ok) {
-    throw new Error(data.error?.message || `Request failed with status ${res.status}`);
+    let msg = data.error?.message || `Request failed with status ${res.status}`;
+    if (data.error?.details) {
+      if (Array.isArray(data.error.details) && data.error.details.length > 0) {
+        const detailLines = data.error.details
+          .map((d: any) => (d.field ? `${d.field}: ${d.message}` : d.message || JSON.stringify(d)))
+          .join(', ');
+        msg = `${msg} (${detailLines})`;
+      } else if (typeof data.error.details === 'object') {
+        const detailLines = Object.entries(data.error.details)
+          .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
+          .join(', ');
+        if (detailLines) {
+          msg = `${msg} (${detailLines})`;
+        }
+      }
+    }
+    throw new Error(msg);
   }
   return data.data !== undefined ? data.data : data;
 }

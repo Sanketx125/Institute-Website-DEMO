@@ -45,7 +45,7 @@ export function getPrograms(_req: Request, res: Response) {
 
 export function getProgramBySlug(req: Request, res: Response) {
   const { slug } = req.params;
-  const program = memoryDb.programs.find((p) => p.slug === slug);
+  const program = memoryDb.programs.find((p) => p.slug === slug || p.id === slug);
   if (!program) {
     return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Program not found' } });
   }
@@ -78,7 +78,7 @@ export function createProgram(req: AuthenticatedRequest, res: Response) {
 
 export function updateProgram(req: AuthenticatedRequest, res: Response) {
   const { id } = req.params;
-  const idx = memoryDb.programs.findIndex((p) => p.id === id);
+  const idx = memoryDb.programs.findIndex((p) => p.id === id || p.slug === id);
   if (idx === -1) {
     return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Program not found' } });
   }
@@ -94,7 +94,7 @@ export function updateProgram(req: AuthenticatedRequest, res: Response) {
   recordAuditLog({
     action: 'UPDATE',
     entity: 'Program',
-    entityId: id,
+    entityId: memoryDb.programs[idx].id,
     userId: req.user?.id,
     userEmail: req.user?.email,
     details: { code: validated.code },
@@ -105,7 +105,7 @@ export function updateProgram(req: AuthenticatedRequest, res: Response) {
 
 export function deleteProgram(req: AuthenticatedRequest, res: Response) {
   const { id } = req.params;
-  const idx = memoryDb.programs.findIndex((p) => p.id === id);
+  const idx = memoryDb.programs.findIndex((p) => p.id === id || p.slug === id);
   if (idx === -1) {
     return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Program not found' } });
   }

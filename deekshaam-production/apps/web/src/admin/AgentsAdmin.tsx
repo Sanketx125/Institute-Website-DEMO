@@ -296,7 +296,7 @@ export const AgentsAdmin: React.FC<{ currentUser?: any }> = ({ currentUser }) =>
             </div>
 
             <form onSubmit={handleCreate}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
                 <label>
                   Full Name *
                   <input
@@ -319,7 +319,7 @@ export const AgentsAdmin: React.FC<{ currentUser?: any }> = ({ currentUser }) =>
                 </label>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
                 <label>
                   Phone Number *
                   <input
@@ -342,11 +342,11 @@ export const AgentsAdmin: React.FC<{ currentUser?: any }> = ({ currentUser }) =>
               </div>
 
               {isSuperAdmin ? (
-                <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '16px', borderRadius: '8px' }}>
                   <h3 style={{ fontSize: '14px', margin: '0 0 12px', color: '#1e293b' }}>
                     Super Admin Rate Configuration
                   </h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px' }}>
                     <label>
                       Student Discount %
                       <input
@@ -477,7 +477,7 @@ export const AgentsAdmin: React.FC<{ currentUser?: any }> = ({ currentUser }) =>
             </div>
 
             <form onSubmit={handleUpdate}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
                 <label>
                   Full Name *
                   <input
@@ -499,11 +499,11 @@ export const AgentsAdmin: React.FC<{ currentUser?: any }> = ({ currentUser }) =>
               </div>
 
               {isSuperAdmin && (
-                <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '16px', borderRadius: '8px' }}>
                   <h3 style={{ fontSize: '14px', margin: '0 0 12px', color: '#1e293b' }}>
                     Super Admin Rate Configuration
                   </h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px' }}>
                     <label>
                       Student Discount %
                       <input

@@ -78,10 +78,13 @@ export function submitApplication(req: Request, res: Response) {
         studentUserId: (req as any).user?.id,
       });
     } catch (err: any) {
+      const code = err.message?.includes('own promo code') || err.message?.includes('not eligible')
+        ? 'SELF_REFERRAL_NOT_ALLOWED'
+        : 'INVALID_PROMO_CODE';
       return res.status(400).json({
         success: false,
         error: {
-          code: 'INVALID_PROMO_CODE',
+          code,
           message: err.message || 'The promo code applied is not valid.',
         },
       });

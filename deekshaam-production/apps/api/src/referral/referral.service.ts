@@ -272,7 +272,7 @@ export class ReferralService {
    */
   public recordPayout(params: {
     agentId: string;
-    commissionIds: string[];
+    commissionIds?: string[];
     method: string;
     reference: string;
     note?: string;
@@ -283,9 +283,9 @@ export class ReferralService {
 
     const eligibleCommissions = memoryDb.agentCommissions.filter(
       (c) =>
-        params.commissionIds.includes(c.id) &&
         c.agentId === params.agentId &&
-        c.status === 'APPROVED'
+        c.status === 'APPROVED' &&
+        (!params.commissionIds || params.commissionIds.length === 0 || params.commissionIds.includes(c.id))
     );
 
     if (eligibleCommissions.length === 0) {

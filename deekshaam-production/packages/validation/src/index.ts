@@ -217,8 +217,8 @@ export type UpdateAgentInput = z.infer<typeof updateAgentSchema>;
 
 export const createPayoutSchema = z.object({
   agentId: z.string().min(1, 'Agent ID is required'),
-  commissionIds: z.array(z.string().min(1)).min(1, 'At least one commission must be selected'),
-  method: z.enum(['BANK_TRANSFER', 'UPI', 'CHEQUE', 'OTHER']),
+  commissionIds: z.array(z.string().min(1)).optional(),
+  method: z.enum(['BANK_TRANSFER', 'UPI', 'CHEQUE', 'OTHER', 'CASH']),
   reference: z.string().min(2, 'Payment reference / transaction ID is required'),
   note: z.string().max(500).optional(),
 });

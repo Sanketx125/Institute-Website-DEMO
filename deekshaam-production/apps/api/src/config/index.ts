@@ -68,5 +68,11 @@ export const config = {
   features: {
     enableAuditLogging: process.env.ENABLE_AUDIT_LOGGING !== 'false',
     enableAnalytics: process.env.ENABLE_ANALYTICS !== 'false',
+    get agentReferralEnabled(): boolean {
+      if (process.env.AGENT_REFERRAL_ENABLED !== undefined) {
+        return process.env.AGENT_REFERRAL_ENABLED === 'true';
+      }
+      return true;
+    },
   },
 };

@@ -7,6 +7,7 @@ export enum RoleType {
   CONTENT_ADMIN = 'CONTENT_ADMIN',
   ADMISSION_STAFF = 'ADMISSION_STAFF',
   ENQUIRY_STAFF = 'ENQUIRY_STAFF',
+  AGENT = 'AGENT',
 }
 
 export interface User {
@@ -257,6 +258,11 @@ export interface Application {
   stage: number; // 1: Submitted, 2: Document Review, 3: Admissions Review, 4: Decision, 5: Enrollment
   documents?: ApplicationDocument[];
   statusHistory?: ApplicationStatusHistory[];
+  agentId?: string;
+  promoCodeUsed?: string;
+  discountPercentApplied?: number;
+  discountAmount?: number;
+  commissionPercentApplied?: number;
   submittedAt: string;
   updatedAt: string;
 }
@@ -409,4 +415,138 @@ export interface ApiResponse<T = any> {
     pageSize?: number;
   };
 }
+
+// ===================================================
+// AGENTS & REFERRAL SYSTEM DOMAIN
+// ===================================================
+
+export enum AgentStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+}
+
+export enum CommissionStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  PAID = 'PAID',
+  REVERSED = 'REVERSED',
+}
+
+export enum PayoutMethod {
+  BANK_TRANSFER = 'BANK_TRANSFER',
+  UPI = 'UPI',
+  CHEQUE = 'CHEQUE',
+  OTHER = 'OTHER',
+}
+
+export enum CommissionBase {
+  NET_FEE = 'NET_FEE',
+  GROSS_FEE = 'GROSS_FEE',
+}
+
+export interface Agent {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  phone: string;
+  status: AgentStatus;
+  promoCode: string;
+  commissionPercent: number;
+  studentDiscountPercent: number;
+  payoutDetails?: string;
+  notes?: string;
+  isConfigured: boolean;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string | null;
+}
+
+export interface AgentCommission {
+  id: string;
+  agentId: string;
+  admissionId: string;
+  baseAmount: number; // in paise
+  commissionPercent: number;
+  commissionAmount: number; // in paise
+  status: CommissionStatus;
+  approvedAt?: string | null;
+  paidAt?: string | null;
+  payoutId?: string | null;
+  reversalReason?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  admission?: Application;
+  agent?: Agent;
+}
+
+export interface AgentPayout {
+  id: string;
+  agentId: string;
+  totalAmount: number; // in paise
+  method: PayoutMethod | string;
+  reference: string;
+  paidBy: string;
+  paidAt: string;
+  note?: string | null;
+  agent?: Agent;
+  commissions?: AgentCommission[];
+}
+
+export interface AgentAuditLog {
+  id: string;
+  actorUserId: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  oldValue?: string | null;
+  newValue?: string | null;
+  ipAddress?: string | null;
+  createdAt: string;
+}
+
+export interface ReferralSettings {
+  id: string;
+  defaultCommissionPercent: number;
+  defaultDiscountPercent: number;
+  commissionBase: CommissionBase | string;
+  maxAllowedDiscountPercent: number;
+  maxAllowedCommissionPercent: number;
+  updatedAt: string;
+}
+
+export interface ValidatePromoCodeResponse {
+  valid: boolean;
+  code: string;
+  discountPercent: number;
+  discountAmount: number; // in rupees
+  originalFee: number; // in rupees
+  finalFee: number; // in rupees
+  message?: string;
+}
+
+export interface AgentDashboardMetrics {
+  totalAdmissions: number;
+  totalPendingCommissionPaise: number;
+  totalApprovedCommissionPaise: number;
+  totalPaidCommissionPaise: number;
+  totalReversedCommissionPaise: number;
+  recentAdmissions: Array<{
+    id: string;
+    studentFirstName: string;
+    maskedPhone: string;
+    maskedEmail: string;
+    programSlug: string;
+    admissionStatus: string;
+    grossFeeINR: number;
+    discountINR: number;
+    finalFeeINR: number;
+    commissionINR: number;
+    commissionStatus: CommissionStatus;
+    submittedAt: string;
+  }>;
+}
+
 export * from './seo';
+

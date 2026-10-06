@@ -15,6 +15,10 @@ export const defaultRoles = [
     name: 'ENQUIRY_STAFF',
     description: 'Lead inbox, callback management, and campus visit scheduling',
   },
+  {
+    name: 'AGENT',
+    description: 'External referral partner portal for monitoring referred student applications and commissions',
+  },
 ];
 
 export const defaultPermissions = [
@@ -29,7 +33,19 @@ export const defaultPermissions = [
   { code: 'users:manage', description: 'Manage staff accounts and roles' },
   { code: 'audit:read', description: 'View immutable system audit logs' },
   { code: 'settings:manage', description: 'Manage site settings and global configuration' },
+  { code: 'agents:create', description: 'Create new referral agents' },
+  { code: 'agents:manage', description: 'Manage referral agents and payouts' },
 ];
+
+export const defaultReferralSettings = {
+  id: 'referral_settings_default',
+  defaultCommissionPercent: 0,
+  defaultDiscountPercent: 0,
+  commissionBase: 'NET_FEE',
+  maxAllowedDiscountPercent: 50,
+  maxAllowedCommissionPercent: 50,
+  updatedAt: new Date().toISOString(),
+};
 
 export const institutionSeed = {
   instituteName: 'Deekshaam Business School',

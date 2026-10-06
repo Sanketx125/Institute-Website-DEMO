@@ -11,6 +11,7 @@ import {
   gallerySeed,
   defaultRoles,
   defaultPermissions,
+  defaultReferralSettings,
 } from './seed-data';
 import { jobsSeed } from './jobs-seed';
 import bcrypt from 'bcryptjs';
@@ -74,6 +75,11 @@ class MemoryDatabase {
   public leadHistory: any[] = [];
   public payments: any[] = [];
   public auditLogs: any[] = [];
+  public agents: any[] = [];
+  public agentCommissions: any[] = [];
+  public agentPayouts: any[] = [];
+  public agentAuditLogs: any[] = [];
+  public referralSettings: any = { ...defaultReferralSettings };
   public searchIndex: any[] = [];
   public analyticsEvents: any[] = [];
 

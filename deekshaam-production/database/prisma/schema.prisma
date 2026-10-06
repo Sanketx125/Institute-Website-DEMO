@@ -46,6 +46,7 @@ model User {
   updatedAt     DateTime    @updatedAt
   auditLogs     AuditLog[]
   uploadedMedia Media[]
+  agent         Agent?
 }
 
 // --------------------------------------------------
@@ -350,11 +351,19 @@ model Application {
   documents      ApplicationDocument[]
   statusHistory  ApplicationStatusHistory[]
   payments       Payment[]
+  agentId                  String?
+  agent                    Agent?           @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  promoCodeUsed            String?
+  discountPercentApplied   Decimal?         @db.Decimal(5, 2)
+  discountAmount           Int?
+  commissionPercentApplied Decimal?         @db.Decimal(5, 2)
+  commission               AgentCommission?
   submittedAt    DateTime                   @default(now())
   updatedAt      DateTime                   @updatedAt
 
   @@index([status])
   @@index([email])
+  @@index([agentId])
 }
 
 model ApplicationDocument {
@@ -477,3 +486,95 @@ model AnalyticsEvent {
 
   @@index([eventType, timestamp])
 }
+
+// --------------------------------------------------
+// AGENTS & REFERRAL SYSTEM
+// --------------------------------------------------
+model Agent {
+  id                     String            @id @default(cuid())
+  userId                 String            @unique
+  user                   User              @relation(fields: [userId], references: [id], onDelete: Restrict)
+  name                   String
+  email                  String            @unique
+  phone                  String
+  status                 String            @default("ACTIVE") // ACTIVE, INACTIVE
+  promoCode              String            @unique
+  commissionPercent      Decimal           @default(0.00) @db.Decimal(5, 2)
+  studentDiscountPercent Decimal           @default(0.00) @db.Decimal(5, 2)
+  payoutDetails          String?
+  notes                  String?
+  isConfigured           Boolean           @default(false)
+  createdBy              String
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  deletedAt              DateTime?
+  applications           Application[]
+  commissions            AgentCommission[]
+  payouts                AgentPayout[]
+
+  @@index([status])
+  @@index([promoCode])
+}
+
+model AgentCommission {
+  id                String       @id @default(cuid())
+  agentId           String
+  agent             Agent        @relation(fields: [agentId], references: [id], onDelete: Restrict)
+  admissionId       String       @unique
+  admission         Application  @relation(fields: [admissionId], references: [id], onDelete: Restrict)
+  baseAmount        Int          // in paise
+  commissionPercent Decimal      @db.Decimal(5, 2)
+  commissionAmount  Int          // in paise
+  status            String       @default("PENDING") // PENDING, APPROVED, PAID, REVERSED
+  approvedAt        DateTime?
+  paidAt            DateTime?
+  payoutId          String?
+  payout            AgentPayout? @relation(fields: [payoutId], references: [id], onDelete: SetNull)
+  reversalReason    String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([agentId, status])
+  @@index([status])
+}
+
+model AgentPayout {
+  id          String            @id @default(cuid())
+  agentId     String
+  agent       Agent             @relation(fields: [agentId], references: [id], onDelete: Restrict)
+  totalAmount Int               // in paise
+  method      String            // BANK_TRANSFER, UPI, CHEQUE, OTHER
+  reference   String
+  paidBy      String
+  paidAt      DateTime          @default(now())
+  note        String?
+  commissions AgentCommission[]
+
+  @@index([agentId])
+}
+
+model AgentAuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String
+  action      String   // AGENT_CREATE, AGENT_UPDATE, PERCENTAGE_CHANGE, STATUS_CHANGE, PAYOUT_RECORDED, COMMISSION_TRANSITION
+  entityType  String
+  entityId    String
+  oldValue    String?
+  newValue    String?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model ReferralSettings {
+  id                         String   @id @default("referral_settings_default")
+  defaultCommissionPercent   Decimal  @default(0.00) @db.Decimal(5, 2)
+  defaultDiscountPercent     Decimal  @default(0.00) @db.Decimal(5, 2)
+  commissionBase             String   @default("NET_FEE") // NET_FEE, GROSS_FEE
+  maxAllowedDiscountPercent   Decimal  @default(50.00) @db.Decimal(5, 2)
+  maxAllowedCommissionPercent Decimal  @default(50.00) @db.Decimal(5, 2)
+  updatedAt                  DateTime @updatedAt
+}
+

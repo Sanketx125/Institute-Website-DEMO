@@ -13,7 +13,7 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export const createUserSchema = z.object({
   email: z.string().email('Valid email is required'),
   name: z.string().min(2, 'Name is required'),
-  role: z.enum(['SUPER_ADMIN', 'CONTENT_ADMIN', 'ADMISSION_STAFF', 'ENQUIRY_STAFF']),
+  role: z.enum(['SUPER_ADMIN', 'CONTENT_ADMIN', 'ADMISSION_STAFF', 'ENQUIRY_STAFF', 'AGENT']),
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters long')
@@ -43,6 +43,7 @@ export const applicationSchema = z.object({
   year12: z.string().regex(/^[0-9]{4}$/, 'Valid 4-digit passing year required'),
   stream: z.string().min(2, 'Academic stream is required'),
   percentage: z.string().min(1, 'Aggregate percentage is required'),
+  promoCode: z.string().trim().max(20).optional().or(z.literal('')),
 });
 
 export type ApplicationInput = z.infer<typeof applicationSchema>;
@@ -178,3 +179,57 @@ export const galleryItemSchema = z.object({
   order: z.number().int().default(0),
   status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']).default('PUBLISHED'),
 });
+
+// ----------------------------------------------------
+// AGENT & REFERRAL VALIDATION
+// ----------------------------------------------------
+export const validatePromoCodeSchema = z.object({
+  code: z.string().trim().min(3, 'Promo code must be at least 3 characters').max(20, 'Code too long'),
+  programSlug: z.string().optional(),
+});
+export type ValidatePromoCodeInput = z.infer<typeof validatePromoCodeSchema>;
+
+export const createAgentSchema = z.object({
+  name: z.string().min(2, 'Agent name is required'),
+  email: z.string().email('Valid email is required'),
+  phone: z.string().regex(/^[0-9+\s-]{10,15}$/, 'Valid 10-digit phone number is required'),
+  status: z.enum(['ACTIVE', 'INACTIVE']).default('ACTIVE'),
+  promoCode: z.string().trim().min(3).max(12).regex(/^[A-Z0-9]+$/, 'Code must be alphanumeric uppercase').optional(),
+  commissionPercent: z.number().min(0).max(50).optional(),
+  studentDiscountPercent: z.number().min(0).max(50).optional(),
+  payoutDetails: z.string().max(1000).optional(),
+  notes: z.string().max(1000).optional(),
+  password: z.string().min(8).regex(/[A-Z]/).regex(/[a-z]/).regex(/[0-9]/).optional(),
+});
+export type CreateAgentInput = z.infer<typeof createAgentSchema>;
+
+export const updateAgentSchema = z.object({
+  name: z.string().min(2).optional(),
+  phone: z.string().regex(/^[0-9+\s-]{10,15}$/).optional(),
+  status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
+  promoCode: z.string().trim().min(3).max(12).regex(/^[A-Z0-9]+$/).optional(),
+  commissionPercent: z.number().min(0).max(50).optional(),
+  studentDiscountPercent: z.number().min(0).max(50).optional(),
+  payoutDetails: z.string().max(1000).optional(),
+  notes: z.string().max(1000).optional(),
+});
+export type UpdateAgentInput = z.infer<typeof updateAgentSchema>;
+
+export const createPayoutSchema = z.object({
+  agentId: z.string().min(1, 'Agent ID is required'),
+  commissionIds: z.array(z.string().min(1)).min(1, 'At least one commission must be selected'),
+  method: z.enum(['BANK_TRANSFER', 'UPI', 'CHEQUE', 'OTHER']),
+  reference: z.string().min(2, 'Payment reference / transaction ID is required'),
+  note: z.string().max(500).optional(),
+});
+export type CreatePayoutInput = z.infer<typeof createPayoutSchema>;
+
+export const referralSettingsSchema = z.object({
+  defaultCommissionPercent: z.number().min(0).max(50),
+  defaultDiscountPercent: z.number().min(0).max(50),
+  commissionBase: z.enum(['NET_FEE', 'GROSS_FEE']),
+  maxAllowedDiscountPercent: z.number().min(0).max(100).default(50),
+  maxAllowedCommissionPercent: z.number().min(0).max(100).default(50),
+});
+export type ReferralSettingsInput = z.infer<typeof referralSettingsSchema>;
+
